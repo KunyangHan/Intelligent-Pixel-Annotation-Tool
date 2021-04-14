@@ -1,7 +1,9 @@
 # interactive-segmentation-editor
-A web based interactive image annotation tool. We provide two possible instantiations of guidance, i.e., IOG-Click and IOG-Scribble. IOG-Click is based on [Inside-Outside-Guidance (IOG)](http://openaccess.thecvf.com/content_CVPR_2020/papers/Zhang_Interactive_Object_Segmentation_With_Inside-Outside_Guidance_CVPR_2020_paper.pdf) and the IOG-Scribble is an improved version, which represents the object-of-interest with a coarse scribble. 
-
+A web based interactive image annotation tool. 
 ![img](https://raw.githubusercontent.com/KunyangHan/interactive-segmentation-editor/master/doc/sheep.png "img")
+
+## Abstract
+We provide two possible instantiations of guidance, i.e., IOG-Click and IOG-Scribble. IOG-Click is based on [Inside-Outside-Guidance (IOG)](http://openaccess.thecvf.com/content_CVPR_2020/papers/Zhang_Interactive_Object_Segmentation_With_Inside-Outside_Guidance_CVPR_2020_paper.pdf) and the IOG-Scribble is an improved version, which represents the object-of-interest with a coarse scribble. We also prorose superpixel tool for user refinement.
 
 ## How to use
 1. Install requirement  
@@ -12,13 +14,15 @@ A web based interactive image annotation tool. We provide two possible instantia
   - pycocotools
   - 
 2. Usage
-Download the pretrained models form [IOG](https://github.com/shiyinzhang/Inside-Outside-Guidance) and copy the models to /path/to/interactive-segmentation-editor/python_script/.
-We also propose the pretrained models of [IOG-Scribble](https://). Then start the interactive segmentation editor with the following commands:
+  - Download the pretrained models form [IOG](https://github.com/shiyinzhang/Inside-Outside-Guidance) and copy the models to /path/to/interactive-segmentation-editor/python_script/. We also propose the pretrained models of [IOG-Scribble](https://). 
+  - Copy the image (.jpg or .png) to /path/to/interactive-segmentation-editor/work_folder/image/ and update the /path/to/interactive-segmentation-editor/work_folder/imageList.txt.
+  - Then start the interactive segmentation editor with the following commands:
+	```
+	sh run.sh
+	```
+  - The output mask directory: /path/to/interactive-segmentation-editor/work_folder/？？？
 
-```
-sh run.sh
-```
-
+3. support
 
 ## Demo
 
