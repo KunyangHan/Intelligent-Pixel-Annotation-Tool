@@ -3,7 +3,7 @@ A web based interactive image annotation tool. We provide two possible instantia
 
 ![img](https://raw.githubusercontent.com/KunyangHan/interactive-segmentation-editor/master/doc/sheep.png "img")
 
-### How to run
+## How to use
 1. Install requirement  
   - [Meteor](http://www.meteor.com/install)
   - PyTorch = 0.4
@@ -12,15 +12,15 @@ A web based interactive image annotation tool. We provide two possible instantia
   - pycocotools
   - 
 2. Usage
+Download the pretrained models form [IOG](https://github.com/shiyinzhang/Inside-Outside-Guidance) and copy the models to /path/to/interactive-segmentation-editor/python_script/.
+We also propose the pretrained models of [IOG-Scribble](https://). Then start the interactive segmentation editor with the following commands:
+
 ```
 sh run.sh
-
 ```
-### How to use
 
 
-
-### Demo
+## Demo
 
 <table>
     <tr>
@@ -41,7 +41,7 @@ sh run.sh
     </tr>
 </table>
 
-### Citations
+## Citations
 Please consider citing our papers in your publications if it helps your research. The following is a BibTeX reference.
 
     @inproceedings{zhang2020interactive,
