@@ -953,6 +953,9 @@ export default class SseEditor2d extends React.Component {
             // this._updateVisualizationOpacity();
             this.visualization.opacity = this.mainLayerOpacity;
         });
+        this.onMsg("boundaryOpacityChange", (args) => {
+            this.boundary.opacity = Math.max(0.1, parseFloat(args.value));
+        });
 
         this.onMsg("filterChange", this.updateFilter.bind(this));
 
@@ -1147,12 +1150,12 @@ export default class SseEditor2d extends React.Component {
         this.imageLoaded();
 
 
-        this.interval = setInterval(() => this.tick(), 30000);
+        // this.interval = setInterval(() => this.tick(), 30000);
     }
 
     componentWillUnmount(){
         SseMsg.unregister(this);
-        clearInterval(this.interval);
+        // clearInterval(this.interval);
     }
 
     tick() {
@@ -1182,7 +1185,7 @@ export default class SseEditor2d extends React.Component {
         this.clearAux();
         this.superpixelTool.activate();
         // this.mainLayer.visible = false;
-        this.boundary.visible = true;
+        // this.boundary.visible = true;
         this.visualization.visible = true;
         this.annotation.visible = false;
     }
@@ -1439,18 +1442,6 @@ export default class SseEditor2d extends React.Component {
         this.scaleCanvas.height = this.imageHeight;
         const ctx = this.filterCanvas.getContext("2d");
 
-        // if (superpixel.width === image.width && superpixel.height === image.height) {
-        //     console.log("found superpixel");
-        //     ctx.drawImage(superpixel, 0, 0);
-        //     this.annotationData = ctx.getImageData(0, 0, superpixel.width, superpixel.height);
-        // }
-
-        // if (visual.width === image.width && visual.height === image.height) {
-        //     console.log("found visual");
-        //     ctx.drawImage(visual, 0, 0);
-        //     this.visualizationData = ctx.getImageData(0, 0, superpixel.width, superpixel.height);
-        // }
-
         ctx.drawImage(image, 0, 0);
         this.sourceImageData = ctx.getImageData(0, 0, this.imageWidth, this.imageHeight);
 
@@ -1464,37 +1455,21 @@ export default class SseEditor2d extends React.Component {
         this.annotation.onLoad = () => {
             this.annotation.visible = false;
 
-            if (typeof(this.annotationData) != "undefined") {
-                this.annotation.setImageData(this.annotationData, 0, 0);
-            }
-            else {
-                const ctx = this.filterCanvas.getContext("2d");
-                let newImageData = ctx.createImageData(this.imageWidth, this.imageHeight);
-                let index = 0;
-                let offset = 0;
+            const ctx = this.filterCanvas.getContext("2d");
+            let newImageData = ctx.createImageData(this.imageWidth, this.imageHeight);
+            let index = 0;
+            let offset = 0;
 
-                for (var i = 0; i < this.imageHeight; i++) {
-                    for (var j = 0; j < this.imageWidth; j++) {
-                        newImageData.data[offset + 0] = index;
-                        newImageData.data[offset + 1] = index;
-                        newImageData.data[offset + 2] = index;
-                        newImageData.data[offset + 3] = 255;
-                        offset += 4;
-                    }
-                }
-                this.annotation.setImageData(newImageData, 0, 0);
-
-                this.annotationData = ctx.createImageData(this.imageWidth, this.imageHeight);
-                for (var i = 0; i < this.imageHeight; i++) {
-                    for (var j = 0; j < this.imageWidth; j++) {
-                        this.annotationData.data[offset + 0] = index;
-                        this.annotationData.data[offset + 1] = index;
-                        this.annotationData.data[offset + 2] = index;
-                        this.annotationData.data[offset + 3] = 255;
-                        offset += 4;
-                    }
+            for (var i = 0; i < this.imageHeight; i++) {
+                for (var j = 0; j < this.imageWidth; j++) {
+                    newImageData.data[offset + 0] = index;
+                    newImageData.data[offset + 1] = index;
+                    newImageData.data[offset + 2] = index;
+                    newImageData.data[offset + 3] = 255;
+                    offset += 4;
                 }
             }
+            this.annotation.setImageData(newImageData, 0, 0);
         };
 
         this.superPixel.onLoad = () => {
@@ -1524,33 +1499,21 @@ export default class SseEditor2d extends React.Component {
         this.visualization.onLoad = () => {
             this.visualization.visible = false;
 
-            if (typeof(this.visualizationData) != "undefined") {
-                console.log("set visualization data");
-                // let offset = 0;
-                // for (var i = 0; i < this.imageHeight; i++) {
-                //     for (var j = 0; j < this.imageWidth; j++) {
-                //         this.visualizationData.data[offset + 3] = this.mainLayerOpacity * 255;
-                //         offset += 4;
-                //     }
-                // }
-                this.visualization.setImageData(this.visualizationData, 0, 0);
-            }
-            else {
-                const ctx = this.filterCanvas.getContext("2d");
-                let newImageData = ctx.createImageData(this.imageWidth, this.imageHeight);
-                let offset = 0;
-                for (var i = 0; i < this.imageHeight; i++) {
-                    for (var j = 0; j < this.imageWidth; j++) {
-                        newImageData.data[offset] = 255;
-                        newImageData.data[offset + 1] = 255;
-                        newImageData.data[offset + 2] = 255;
-                        newImageData.data[offset + 3] = 255;//this.mainLayerOpacity * 255;
-                        offset += 4;
-                    }
+            const ctx = this.filterCanvas.getContext("2d");
+            let newImageData = ctx.createImageData(this.imageWidth, this.imageHeight);
+            let offset = 0;
+            for (var i = 0; i < this.imageHeight; i++) {
+                for (var j = 0; j < this.imageWidth; j++) {
+                    newImageData.data[offset] = 255;
+                    newImageData.data[offset + 1] = 255;
+                    newImageData.data[offset + 2] = 255;
+                    newImageData.data[offset + 3] = 255;//this.mainLayerOpacity * 255;
+                    offset += 4;
                 }
-
-                this.visualization.setImageData(newImageData, 0, 0);
             }
+
+            this.visualization.setImageData(newImageData, 0, 0);
+
             this.visualization.opacity = this.mainLayerOpacity;
 
             // this.visualization.opacity = this.mainLayerOpacity;
@@ -1773,12 +1736,12 @@ export default class SseEditor2d extends React.Component {
         let visualCtx = this.loadVisual.getContext("2d");
 
         if (superpixel.width === image.width && superpixel.height === image.height) {
-            console.log("found superpixel");
+            console.log("found annotation");
             annoCtx.drawImage(superpixel, 0, 0);
 
             setTimeout(() => {
-                this.annotationData = annoCtx.getImageData(0, 0, superpixel.width, superpixel.height);
-                this.annotation.setImageData(this.annotationData, 0, 0); 
+                let annotationData = annoCtx.getImageData(0, 0, superpixel.width, superpixel.height);
+                this.annotation.setImageData(annotationData, 0, 0); 
             }, 100);
         }
 
@@ -1787,21 +1750,14 @@ export default class SseEditor2d extends React.Component {
             visualCtx.drawImage(visual, 0, 0);
 
             setTimeout(() => {
-                this.visualizationData = visualCtx.getImageData(0, 0, visual.width, visual.height);
-                this.visualization.setImageData(this.visualizationData, 0, 0); 
+                let visualizationData = visualCtx.getImageData(0, 0, visual.width, visual.height);
+                this.visualization.setImageData(visualizationData, 0, 0); 
             }, 100);
         }
     }
 
     printAnno(t=1) {
-        let aData
-        if (t == 1) {
-            aData = this._getAnnotationData();
-        }
-        else {
-            aData = this.annotationData;
-        }
-
+        let aData = this._getAnnotationData();
 
         let log = {};
         let i, j, k = 0;
@@ -1868,11 +1824,19 @@ export default class SseEditor2d extends React.Component {
         const ctx = this.filterCanvas.getContext("2d");
         let oriImgData = ctx.getImageData(0, 0, this.imageWidth, this.imageHeight);
 
-        this.printAnno(2);
+        // this.printAnno();
 
         ctx.putImageData(aData, 0, 0);
         let img = this.filterCanvas.toDataURL();
         Meteor.call("saveAnnotate", img, this.props.imageUrl, (err) => {});
+
+        let offset = 0;
+        for (var i = 0; i < this.imageHeight; i++) {
+            for (var j = 0; j < this.imageWidth; j++) {
+                vData.data[offset + 3] = 255;
+                offset += 4;
+            }
+        }
 
         ctx.putImageData(vData, 0, 0);
         img = this.filterCanvas.toDataURL();
@@ -2223,46 +2187,15 @@ export default class SseEditor2d extends React.Component {
             visualizationData.data[offset + 0] = color[0] * 255;
             visualizationData.data[offset + 1] = color[1] * 255;
             visualizationData.data[offset + 2] = color[2] * 255;
+            visualizationData.data[offset + 3] = 255;
         }
         let annotationImageData = new ImageData(aData, this.imageWidth, this.imageHeight);
 
         this.annotation.setImageData(annotationImageData, 0, 0);
         this.visualization.setImageData(visualizationData, 0, 0);
 
-        this.printAnno();
+        // this.printAnno();
     } 
-
-    // _fillPixels = function (pixels) {
-    //     let index = parseInt(this.activeClassIndex);
-    //     console.log(typeof(index));
-    //     console.log("current label index:", index);
-    //     console.log("number to change:", pixels.length);
-    //     let i;
-    //     let aData = this._getAnnotationData().data;
-    //     let visualizationData = this._getVisualizationData();
-    //     let color = this.activeSoc.colorForIndexAsRGBArray(this.activeClassIndex);
-    //     for (i = 0; i < pixels.length; i++) {
-    //         let offset = pixels[i];
-    //         // console.log(offset % 4);
-    //         aData[offset + 0] = index;
-    //         aData[offset + 1] = index;
-    //         aData[offset + 2] = index;
-    //         aData[offset + 3] = 255;
-    //         this.annotationData.data[offset + 0] = index;
-    //         this.annotationData.data[offset + 1] = index;
-    //         this.annotationData.data[offset + 2] = index;
-    //         this.annotationData.data[offset + 3] = 255;
-    //         visualizationData.data[offset + 0] = color[0] * 255;
-    //         visualizationData.data[offset + 1] = color[1] * 255;
-    //         visualizationData.data[offset + 2] = color[2] * 255;
-    //     }
-    //     let annotationImageData = new ImageData(aData, this.imageWidth, this.imageHeight);
-
-    //     this.annotation.setImageData(annotationImageData, 0, 0);
-    //     this.visualization.setImageData(visualizationData, 0, 0);
-
-    //     this.printAnno();
-    // } 
 
     _createPixelIndex(numSegments) {
         var pixelIndex = new Array(numSegments),

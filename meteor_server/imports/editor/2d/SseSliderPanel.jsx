@@ -17,7 +17,7 @@ export default class SseSliderPanel extends React.Component {
     constructor() {
         super();
         SseMsg.register(this);
-        this.state = {opacity: 0.75, curIndex: Session.get('curIndex')};
+        this.state = {opacity: 0.75, boundaryOpacity: 0.5, curIndex: Session.get('curIndex')};
         this.imageChange = this.imageChange.bind(this);
         // this.state.target = Session.get('nextName');
         // this.state.curIndex = Session.get('curIndex');
@@ -42,6 +42,7 @@ export default class SseSliderPanel extends React.Component {
         };
         this.defaultFilterData = Object.assign({}, this.state.filterData);
         this.defaultOpacity = 0.75;
+        this.defaultBoundaryOpacity = 0.5;
         this.currentPresetIndex = -1;
         this.presets = [
             {
@@ -84,6 +85,7 @@ export default class SseSliderPanel extends React.Component {
     resetAll() {
         Object.assign(this.state.filterData, this.defaultFilterData);
         this.state.opacity = this.defaultOpacity;
+        this.state.boundaryOpacity = this.defaultBoundaryOpacity;
         this.setState(this.state);
         this.currentPresetIndex = -1;
 
@@ -106,6 +108,11 @@ export default class SseSliderPanel extends React.Component {
     opacityChange(value) {
         this.sendMsg("opacityChange", {value});
         this.setState({opacity: value})
+    }
+    
+    boundaryOpacityChange(value) {
+        this.sendMsg("boundaryOpacityChange", {value});
+        this.setState({boundaryOpacity: value})
     }
 
     filterChange(filterName) {
@@ -186,8 +193,19 @@ export default class SseSliderPanel extends React.Component {
                             />
                         </div>
                     </div>
-                    <button className="sse-button w100" onClick={() => this.sendMsg("reset-start")}>Reset Segmentation
-                    </button>
+                    <div className="hflex">
+                        <div className="mt3">Boundary Opacity</div>
+                        <div className="grow ml5">
+                            <Slider
+                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                min={0}
+                                max={1}
+                                step={0.01}
+                                value={this.state.boundaryOpacity}
+                                onChange={this.boundaryOpacityChange.bind(this)}
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div className="section"><h1>Image Jumper</h1>
                     <div className="mt3">

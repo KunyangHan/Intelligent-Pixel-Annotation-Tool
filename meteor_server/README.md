@@ -1,0 +1,3 @@
+# Meteor Server
+Code from this folder is based on [semantic-segmentation-editor](https://github.com/Hitachi-Automotive-And-Industry-Lab/semantic-segmentation-editor)(v1.2.0), great framework. Only Bitmap Image Editor(2d image) part is used.  
+To study how interactive segmentation model works, we choose interactive-model supported by superpixel, both of which are pixel level procedure, as our annotation way. Thus the previous functions related with polygon are deprecated, and the code we altered mainly concentrated in <code>./imports/editor/2d/</code> folder.

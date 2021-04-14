@@ -188,11 +188,11 @@ def loadnetwork(model_name='IOG_PASCAL.pth'):
         run_id = int(runs[-1].split('_')[-1]) + 1 if runs else 0
     else:
         run_id = 0
-    save_dir = os.path.join(save_dir_root, 'run_' + str(run_id))
-    if not os.path.exists(os.path.join(save_dir, 'models')):
-        os.makedirs(os.path.join(save_dir, 'models'))    
+    save_dir = save_dir_root
+    # save_dir = os.path.join(save_dir_root, 'run_' + str(run_id))
+    # if not os.path.exists(os.path.join(save_dir, 'models')):
+    #     os.makedirs(os.path.join(save_dir, 'models'))    
     # Network definition
-    modelName = 'IOG_pascal'
     net = Network(nInputChannels=nInputChannels,num_classes=1,
                 backbone='resnet101',
                 output_stride=16,
@@ -200,7 +200,8 @@ def loadnetwork(model_name='IOG_PASCAL.pth'):
                 freeze_bn=False) 
     #load models
     #pretrain_dict=torch.load(os.path.join(save_dir, 'models', modelName + '_epoch-' + str(resume_epoch - 1) + '.pth'))
-    pretrain_dict=torch.load(os.path.join(save_dir, 'models', model_name))
+    # pretrain_dict=torch.load(os.path.join(save_dir, 'models', model_name))
+    pretrain_dict=torch.load(os.path.join(save_dir, model_name))
     net_dict=net.state_dict()
     for k, v in pretrain_dict.items():  
         if k in net_dict:      
@@ -291,8 +292,8 @@ def pred_click(imgg_name, bgpoint, cppoint, zero_pad=True, relax=30):
 def pred_scribble(imgg_name, bgpoint, zero_pad=True, relax=30):
     ##########
     # bgpoint = [0,100,500,266]
-    model_name = 'IOG_PASCAL.pth'
-    # model_name = 'IOG_PASCAL_scribble.pth'
+    # model_name = 'IOG_PASCAL.pth'
+    model_name = 'IOG_PASCAL_scribble.pth'
     ##########
 
     img_name_strip = imgg_name[0 : imgg_name.rfind('.')]

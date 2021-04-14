@@ -24,7 +24,7 @@ export default class SseGlobals {
     }
 
     static getSuperpixelUrl(arg) {
-        return "/superpixel" + arg.slice(0, arg.indexOf('.')) + ".png";
+        return "/annotate" + arg.slice(0, arg.indexOf('.')) + ".png";
     }
 
     static getVisualizationUrl(arg) {

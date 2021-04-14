@@ -4,14 +4,31 @@ import {
     ArrangeBringForward, ArrangeSendBackward, AutoFix, CallMerge, CheckOutline, ContentCut, CropLandscape,
     CursorDefaultOutline, DeleteForever, Download, Json, Looks, Redo, Undo, VectorPolygon, ContentSave,
     Eraser, PlusBox, Plus, MinusBox, Minus, Brush, ViewModule} from 'mdi-material-ui';
+import Icon from "@mdi/react";
+import { mdiAlphaCBoxOutline, mdiAlphaSBoxOutline } from '@mdi/js';
 import SseBranding from "../../common/SseBranding";
+
+class mdiAlphaSIcon extends React.Component{
+    render() {
+        return(
+            <Icon path={mdiAlphaSBoxOutline} size={1} />
+        );
+    }
+}
+class mdiAlphaCIcon extends React.Component{
+    render() {
+        return(
+            <Icon path={mdiAlphaCBoxOutline} size={1} />
+        );
+    }
+}
 
 export default class SseToolbar2d extends SseToolbar {
 
     componentDidMount() {
         super.componentDidMount();
-        this.addCommand("undoCommand", "Undo", false, "Ctrl+Z", "undo", Undo, "disabled");
-        this.addCommand("redoCommand", "Redo", false, "Ctrl+Y", "redo", Redo, "disabled");
+        this.addCommand("undoCommand", "Undo", false, null, "undo", Undo, "disabled");
+        this.addCommand("redoCommand", "Redo", false, null, "redo", Redo, "disabled");
         this.addCommand("pointerCommand", "Manipulation Tool", 1, "Alt", "pointer", CursorDefaultOutline);
         this.addCommand("cutCommand", "Cut/Expand Tool", 1, "C", "cut", ContentCut, "disabled");
         this.addCommand("rectangleCommand", "Rectangle Tool", 1, "R", "rectangle", CropLandscape);
@@ -20,10 +37,10 @@ export default class SseToolbar2d extends SseToolbar {
         this.addCommand("superpixelCommand", "Superpixel mode", 1, null, "superpixel", ViewModule);
         this.addCommand("finerCommand", "Superpixel Finer", false, null, "finer", Plus);
         this.addCommand("coarserCommand", "Superpixel Coarser", false, null, "coarser", Minus);
-        this.addCommand("saveAnnotateCommand", "Save Annotate", false, "Ctrl+S", "saveannotate", ContentSave);
+        this.addCommand("saveAnnotateCommand", "Save Annotate", false, null, "saveannotate", ContentSave);
         this.addCommand("boundaryCommand", "Boundary On/Off", false, null, "boundaryonoff", Eraser);
-        this.addCommand("iogPCommand", "IOG Point", 1, null, "iogpoint", AutoFix);
-        this.addCommand("iogSCommand", "IOG Scribble", 1, null, "iogscribble", Brush);
+        this.addCommand("iogPCommand", "IOG Click", 1, null, "iogpoint", mdiAlphaCIcon);
+        this.addCommand("iogSCommand", "IOG Scribble", 1, null, "iogscribble", mdiAlphaSIcon);
         this.addCommand("deleteCommand", "Delete Selection", false, "Del", "delete", DeleteForever, "disabled");
         this.addCommand("downCommand", "Send Backward", false, "Down", "moveback", ArrangeSendBackward, "disabled");
         this.addCommand("upCommand", "Bring Forward", false, "Up", "movefront", ArrangeBringForward, "disabled");
@@ -33,7 +50,6 @@ export default class SseToolbar2d extends SseToolbar {
         this.addCommand("jsonCommand", "Show JSON Output", false, "J", "openJsonView", Json);
         this.addCommand("downloadCommand", "Download", false, "D", "download", Download);
         this.sendMsg("pointer");
-
     }
 
     render() {

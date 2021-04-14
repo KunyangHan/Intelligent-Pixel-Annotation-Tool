@@ -22,7 +22,7 @@ class Path(object):
 
     @staticmethod
     def watch_dir():
-        path_to_meteor = "../meteor_server"
+        path_to_meteor = os.path.abspath("../meteor_server")
         with open(os.path.join(path_to_meteor, "settings.json")) as f:
             content = f.read()
         setting = json.loads(content)
