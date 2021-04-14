@@ -16,7 +16,7 @@ We provide two possible instantiations of guidance, i.e., IOG-Click and IOG-Scri
   - python >= 3.5
   - torchvision = 0.2
   - pycocotools
-  - 
+
 2. Usage
   - Download the pretrained models form [IOG](https://github.com/shiyinzhang/Inside-Outside-Guidance) and copy the models to /path/to/interactive-segmentation-editor/python_script/. We also propose the pretrained models of [IOG-Scribble](https://). 
   - Copy the image (.jpg or .png) to /path/to/interactive-segmentation-editor/work_folder/image/ and update the /path/to/interactive-segmentation-editor/work_folder/imageList.txt.
