@@ -1,7 +1,4 @@
-# Interactive segmentation editor
-'''
-<video id="video" controls="" preload="none">
-      <source id="mp4" src="https://www.bilibili.com/video/BV1QK4y1s7ag?share_source=copy_web" type="video/mp4">
-</video>
-'''
-<iframe src="//player.bilibili.com/player.html?aid=883798339&bvid=BV1QK4y1s7ag&cid=209952577&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+# interactive-segmentation-editor
+An interactive image annotation tool. We provide two possible instantiations of guidance, i.e., IOG-Click and IOG-Scribble. IOG-Click is based on [Inside-Outside-Guidance (IOG)](http://openaccess.thecvf.com/content_CVPR_2020/papers/Zhang_Interactive_Object_Segmentation_With_Inside-Outside_Guidance_CVPR_2020_paper.pdf) and the IOG-Scribble is an improved version, which 
+
+![img](https://github.com/KunyangHan/interactive-segmentation-editor/ims/ims.png "img")
