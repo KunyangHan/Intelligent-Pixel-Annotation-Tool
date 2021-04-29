@@ -2,7 +2,7 @@
 A web based interactive image annotation tool. 
 
 <div>
-<img src="https://raw.githubusercontent.com/KunyangHan/interactive-segmentation-editor/master/doc/sheep.png" height="330" width="700" >
+<img src="https://raw.githubusercontent.com/KunyangHan/interactive-segmentation-editor/master/doc/show.pdf" height="330" width="700" >
 </div>
  
  
