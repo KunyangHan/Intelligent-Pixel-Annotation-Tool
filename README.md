@@ -2,7 +2,7 @@
 A web based interactive image annotation tool. 
 
 <div>
-<img src="https://raw.githubusercontent.com/KunyangHan/interactive-segmentation-editor/master/doc/sheep.png" height="330" width="700" >
+<img src="https://raw.githubusercontent.com/KunyangHan/interactive-segmentation-editor/master/doc/show.pdf" height="330" width="700" >
 </div>
  
  
@@ -28,7 +28,7 @@ We provide two possible instantiations of guidance, i.e., IOG-Click and IOG-Scri
 	```
 
 ### 2. Usage
-  - Download the pretrained models form [IOG](https://github.com/shiyinzhang/Inside-Outside-Guidance) and copy the models to <code>/path/to/interactive-segmentation-editor/python_script/</code>. We also propose the pretrained models of [IOG-Scribble](#). 
+  - Download the pretrained models form [IOG](https://github.com/shiyinzhang/Inside-Outside-Guidance) and copy the models to <code>/path/to/interactive-segmentation-editor/python_script/</code>. We also propose the pretrained models of [IOG-Scribble](https://drive.google.com/file/d/1SKBgkcouwEHBJLVK4g7RU21b6egAR_8M/view?usp=sharing). 
   - (Optional) Copy images (.jpg or .png) to <code>/path/to/interactive-segmentation-editor/work_folder/image/</code> and update <code>/path/to/interactive-segmentation-editor/work_folder/imageList.txt</code>.
   - Then start the interactive segmentation editor with the following commands:
  
