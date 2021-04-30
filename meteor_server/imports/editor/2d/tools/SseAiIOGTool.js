@@ -74,6 +74,7 @@ export default class SseAiIOGTool extends SseTool {
     }
 
     finish() {
+        Meteor.call('clearMask', this.editor.props.imageUrl);
         Meteor.call('savePoint', this.points, this.editor.props.imageUrl, "bgP_fgP");
         
         this.reset();

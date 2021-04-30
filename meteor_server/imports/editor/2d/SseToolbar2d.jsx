@@ -34,6 +34,7 @@ export default class SseToolbar2d extends SseToolbar {
         this.addCommand("rectangleCommand", "Rectangle Tool", 1, "R", "rectangle", CropLandscape);
         this.addCommand("polygonCommand", "Polygon Tool", 1, "P", "polygon", VectorPolygon);
         this.addCommand("magicCommand", "Magic Tool", 1, "A", "flood", AutoFix);
+        this.addCommand("brushCommand", "Brush Mode", 1, null, "brushmode", Brush);
         this.addCommand("superpixelCommand", "Superpixel mode", 1, null, "superpixel", ViewModule);
         this.addCommand("finerCommand", "Superpixel Finer", false, null, "finer", Plus);
         this.addCommand("coarserCommand", "Superpixel Coarser", false, null, "coarser", Minus);
@@ -70,6 +71,9 @@ export default class SseToolbar2d extends SseToolbar {
                     {this.renderCommand("polygonCommand")}
                     {this.renderCommand("magicCommand")}
                 </div> */}
+                <div className="group">
+                    {this.renderCommand("brushCommand")}
+                </div>
                 <div className="group">
                     {this.renderCommand("superpixelCommand")}
                     {this.renderCommand("finerCommand")}

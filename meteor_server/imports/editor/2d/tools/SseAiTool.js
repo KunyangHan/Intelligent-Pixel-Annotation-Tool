@@ -113,6 +113,7 @@ export default class SseAiTool extends SseTool {
     }
 
     finish() {
+        Meteor.call('clearMask', this.editor.props.imageUrl);
         this.editor.saveScribble(this.fgPoints, 'fg');
         Meteor.call('savePoint', this.points, this.editor.props.imageUrl);
         

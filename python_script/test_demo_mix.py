@@ -25,6 +25,9 @@ from networks.mainnetwork import *
 import torch
 import numpy as np
 
+# from flask import Flask, request
+# app = Flask(__name__)
+
 def make_gt_scribble(img, labels,_scribble, sigma=10, one_mask_per_point=False):
     """ Make the ground-truth for  landmark.
     img: the original color image
@@ -220,20 +223,24 @@ def IOG_getmask(bgpoint,inside,image,net,use_scribble=False):
         gpu_id = 0
         device = torch.device("cuda:"+str(gpu_id) if torch.cuda.is_available() else "cpu")
         w,h,channel =image.shape
-        bgx = bgpoint[0]
-        bgy = bgpoint[1]
-        bgyw = bgpoint[2]-bgx
-        bgyh = bgpoint[3]-bgy       
+        # bgx = bgpoint[0]
+        # bgy = bgpoint[1]
+        # bgyw = bgpoint[2]-bgx
+        # bgyh = bgpoint[3]-bgy  
+        bgx = min(bgpoint[0], bgpoint[2])
+        bgy = min(bgpoint[1], bgpoint[3])
+        bgyw = abs(bgpoint[0] - bgpoint[2])
+        bgyh = abs(bgpoint[1] - bgpoint[3])
+
         bg = getbg(bgy,bgx,bgyh,bgyw,w,h)          
         crop_image = crop_from_mask(image, bg, relax=30, zero_pad=True)
-        crop_bg = crop_from_mask(bg, bg, relax=30, zero_pad=True)  
-        crop_image = fixed_resize(crop_image, (512,512) )
-        crop_bg = fixed_resize(crop_bg, (512,512) )   
+        crop_bg = crop_from_mask(bg, bg, relax=30, zero_pad=True)
+        crop_image = fixed_resize(crop_image, (512,512))
+        crop_bg = fixed_resize(crop_bg, (512,512))
 
         if use_scribble:
-
             crop_scribble = crop_from_mask(inside, bg, relax=30, zero_pad=True)
-            crop_scribble = fixed_resize(crop_scribble, (512,512) )
+            crop_scribble = fixed_resize(crop_scribble, (512,512))
             distancemap =  get_distancemap(sigma=10,elem=crop_bg,elem_inside=crop_scribble,use_scribble = use_scribble,pad_pixel=10)    
         else:
             cx = inside[0]
@@ -380,3 +387,42 @@ path_to_image, path_to_watch = Path.watch_dir()
 if __name__ == "__main__":
     print(path_to_image, path_to_watch)
     run()
+
+
+# @app.route('/iog_click', methods=['POST'])
+# def iogClick():
+#     filename = request.form['filename']
+
+#     print('find points:', filename, time.time())
+#     with open(os.path.join(input_folder, filename + ".txt")) as points:
+#         content = points.read()
+#     content = content.split(",")
+#     bgpoint = content[:4]
+#     cppoint = content[4:]
+
+#     name = unquote(filename)
+#     bgpoint = [int(float(i)) for i in bgpoint]
+#     cppoint = [int(float(i)) for i in cppoint]
+
+#     return str(pred_click(name, bgpoint, cppoint))
+
+    
+# @app.route('/iog_scribble', methods=['POST'])
+# def iogClick():
+#     filename = request.form['filename']
+
+#     print('find points:', filename, time.time())
+#     with open(os.path.join(input_folder, filename + ".txt")) as points:
+#         content = points.read()
+#     content = content.split(",")
+#     bgpoint = content.split(",")[:4]
+
+#     name = unquote(filename)
+#     bgpoint = [int(float(i)) for i in bgpoint]
+
+#     return str(pred_scribble(name, bgpoint))
+
+
+# if __name__ == '__main__':
+#     app.debug = True
+#     app.run()

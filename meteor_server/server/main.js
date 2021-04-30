@@ -14,6 +14,13 @@ let callback = (err) => {
     }
 }
 
+Meteor.startup(() => {
+    WebApp.rawConnectHandlers.use(function(req, res, next) {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        return next();
+    });
+})
+
 Meteor.methods({
     'getClassesSets'() {
         const data = config.setsOfClasses;
@@ -204,8 +211,10 @@ Meteor.methods({
 
     'clearMask'(imageUrl) {
         let name = decodeURIComponent(imageUrl.slice(4, imageUrl.indexOf('.')));
-        let path = "D:/Knavit/Documents/_UNIVERTHING/Senior/data/mask/";
+        let path = join(config.maskFolder, name + '.jpg');
 
-        unlink(join(config.maskFolder, name + '.jpg'), callback);
+        if (existsSync(path)){
+            unlink(path, callback);
+        }
     }
 });

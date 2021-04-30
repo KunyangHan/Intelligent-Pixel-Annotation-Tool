@@ -17,9 +17,12 @@ import SseMsg from "../../common/SseMsg";
 import SseSuperPixelTool from "./tools/SseSuperPixelTool";
 import SseAiTool from "./tools/SseAiTool";
 import SseAiIOGTool from "./tools/SseAiIOGTool";
+import SseBrushTool from "./tools/SseBrushTool";
 import segmentation from './segmentation';
 // var segmentation = require('./segmentation');
 import $ from "jquery";
+
+// const https = require('https');
 
 export default class SseEditor2d extends React.Component {
     constructor(props) {
@@ -45,7 +48,9 @@ export default class SseEditor2d extends React.Component {
         this.currentHistoryRecord = -1;
         this.history = [];
         this.maxHistoryRecord = 10;
-        this.boundaryState = 2;
+        this.boundaryState = 0;
+
+        this.brushSize = 2;
 
         this.undoRedo = new SseUndoRedo2d(this.cloningDataFunction);
         this.pointIndicators = new Set();
@@ -915,7 +920,43 @@ export default class SseEditor2d extends React.Component {
         this.componentWillUnmount();
         this.componentDidMount();
     }
+
 */
+
+    
+    // getBoundaryUrl(arg) {
+    //     return "/boundary" + arg.slice(0, arg.indexOf('.')) + ".png";
+    // }
+
+    // loadBoundary(){
+    //     const maskImage = $("#mask");
+    //     url = "/boundary" + this.props.imageUrl.slice(0, this.props.imageUrl.indexOf('.')) + ".png";
+    //     maskImage.attr("src", url);
+
+    //     const mask = $("#mask").get(0);
+    //     const ctx = this.filterCanvas.getContext("2d");
+    //     let oriImgData = ctx.getImageData(0, 0, this.imageWidth, this.imageHeight);
+        
+    //     setTimeout(() => {
+    //         ctx.drawImage(mask, 0, 0);
+    //         console.log(this.filterCanvas.width, this.filterCanvas.height);
+    //         console.log(mask.width, mask.height);
+    //         let maskData = ctx.getImageData(0, 0, mask.width, mask.height);
+    
+    //         let offset = 0;
+    //         for (var i = 0; i < this.imageHeight; i++) {
+    //             for (var j = 0; j < this.imageWidth; j++) {
+    //                 maskData.data[offset + 3] = 255 - maskData.data[offset + 0];
+    //                 offset += 4;
+    //             }
+    //         }
+    //         this.boundary.setImageData(maskData, 0, 0);
+    
+    //         maskImage.attr("src", '');
+    //         ctx.putImageData(oriImgData, 0, 0);
+    //     }, 1000);
+    // }
+
     setupMessages() {
         this.onMsg("classSelection", ({descriptor}) => {
             const classIndex = descriptor.classIndex;
@@ -955,6 +996,10 @@ export default class SseEditor2d extends React.Component {
         });
         this.onMsg("boundaryOpacityChange", (args) => {
             this.boundary.opacity = Math.max(0.1, parseFloat(args.value));
+        });
+
+        this.onMsg("brushChange", (args) => {
+            this.brushSize = Math.max(Math.round(args.value), 0);
         });
 
         this.onMsg("filterChange", this.updateFilter.bind(this));
@@ -1017,6 +1062,7 @@ export default class SseEditor2d extends React.Component {
         this.onMsg("polygon", () => this.polygonTool.activate());
         this.onMsg("rectangle", () => this.rectangleTool.activate());
         this.onMsg("flood", () => this.floodTool.activate());
+        this.onMsg("brushmode", () => this.brushTool.activate());
         this.onMsg("superpixel", () => this.set2Superpixel());
         this.onMsg("finer", () => {
             if (this.visualization.visible == true) {
@@ -1043,18 +1089,63 @@ export default class SseEditor2d extends React.Component {
         });
         this.onMsg("boundaryonoff", () => {
             if (this.visualization.visible == true) {
-                if (this.boundaryState === 2) {
-                    this.boundary.setImageData(this.boundaryDataV1, 0, 0);
-                    this.boundaryState = 1;
+                if (this.boundaryState === 0) {
+                    // Using post transmit start single
+                    // Not working, maybe .bind(this) is needed
+                    // HTTP.call('POST', 'http://127.0.0.1:5000/boundary', {
+                    //     data: {
+                    //         'filename': this.props.imageUrl
+                    //     }
+                    // }, function( error, response ) {
+                    //     if ( error ) {
+                    //         console.log( error );
+                    //     } else {
+                    //         this.loadBoundary();
+                    //     }
+                    // });
+
+                    // HTTP.call('POST', 'http://127.0.0.1:5000/boundary', {
+                    //     data: {
+                    //         'filename': this.props.imageUrl
+                    //     }
+                    // }, function(error, response) {
+                    //     if ( error ) {
+                    //         console.log( error );
+                    //     } else {
+                    //         this.loadBoundary();
+                    //     }
+                    // }.bind(this));
+                    // this.boundaryState = 1;
+
+                    // Using folder scanning way transmit start single
+                    // Added extra Meteor call function and serveStatic files setting
+                    // Meteor.call('savePoint', [0, 0], this.props.imageUrl, "boundary_input");
+                    // this.loadBoundary();
+                    
+                    this.boundary.visible = false;
+                    this.boundaryState = 2;
                 } else if (this.boundaryState === 1) {
                     this.boundary.visible = false;
-                    this.boundaryState = 0;
+                    this.boundaryState = 2;
                 } else {
                     this.boundary.setImageData(this.boundaryDataV2, 0, 0);
                     this.boundary.visible = true;
-                    this.boundaryState = 2;
+                    this.boundaryState = 1;
                 }
             }
+            // if (this.visualization.visible == true) {
+            //     if (this.boundaryState === 2) {
+            //         this.boundary.setImageData(this.boundaryDataV1, 0, 0);
+            //         this.boundaryState = 1;
+            //     } else if (this.boundaryState === 1) {
+            //         this.boundary.visible = false;
+            //         this.boundaryState = 0;
+            //     } else {
+            //         this.boundary.setImageData(this.boundaryDataV2, 0, 0);
+            //         this.boundary.visible = true;
+            //         this.boundaryState = 2;
+            //     }
+            // }
         });
 
 
@@ -1131,6 +1222,7 @@ export default class SseEditor2d extends React.Component {
         this.rectangleTool = new SseRectangleTool(this);
         this.floodTool = new SseFloodTool(this);
         this.superpixelTool = new SseSuperPixelTool(this);
+        this.brushTool = new SseBrushTool(this);
         this.aiTool = new SseAiTool(this);
         this.iog_point = new SseAiIOGTool(this);
         $(window).on('resize', this.resizeCanvas.bind(this));
@@ -1448,8 +1540,8 @@ export default class SseEditor2d extends React.Component {
         this.superLayer.activate();
         this.annotation = new Paper.Raster(image, new Paper.Point(this.imageWidth / 2, this.imageHeight / 2));
         this.superPixel = new Paper.Raster(image, new Paper.Point(this.imageWidth / 2, this.imageHeight / 2));
-        this.visualization = new Paper.Raster(image, new Paper.Point(this.imageWidth / 2, this.imageHeight / 2));
         this.boundary = new Paper.Raster(image, new Paper.Point(this.imageWidth / 2, this.imageHeight / 2));
+        this.visualization = new Paper.Raster(image, new Paper.Point(this.imageWidth / 2, this.imageHeight / 2));
         this.scribbleMask = new Paper.Raster(image, new Paper.Point(this.imageWidth / 2, this.imageHeight / 2));
 
         this.annotation.onLoad = () => {
@@ -2075,12 +2167,14 @@ export default class SseEditor2d extends React.Component {
         let imgData1 = this._getSuperpixelData();
         let imgData2 = this._getSuperpixelData();
 
+        // Altered
         this.boundaryDataV1 = this.computeEdgemapV1(imgData1, 
             {
                 foreground: [255, 255, 255, 185],
                 background: [255, 255, 255, 0]
             }
         );
+        // Original
         this.boundaryDataV2 = this.computeEdgemapV2(imgData2, 
             {
                 foreground: [255, 255, 255, 185],
