@@ -8,10 +8,11 @@ import configurationFile from "./config";
 
 Meteor.startup(() => {
 
-const {imagesFolder, annotateFolder, visualizationFolder, maskFolder} = configurationFile;
+const {imagesFolder, annotateFolder, visualizationFolder, maskFolder, instanceFolder} = configurationFile;
     WebApp.connectHandlers.use("/file", serveStatic(imagesFolder, {fallthrough: false}));
     WebApp.connectHandlers.use("/annotate", serveStatic(annotateFolder, {fallthrough: false}));
     WebApp.connectHandlers.use("/visualization", serveStatic(visualizationFolder, {fallthrough: false}));
+    WebApp.connectHandlers.use("/instance_mask", serveStatic(instanceFolder, {fallthrough: false}));
     WebApp.connectHandlers.use("/mask", serveStatic(maskFolder, {fallthrough: false}));
 
     WebApp.connectHandlers.use(bodyParser.raw({limit: "200mb", type: 'application/octet-stream'}));

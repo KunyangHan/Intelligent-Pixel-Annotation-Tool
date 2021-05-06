@@ -67,6 +67,11 @@ const init = ()=> {
             mkdirSync(configurationFile.annotateFolder);
         }
 
+        configurationFile.instanceFolder = join(configurationFile.baseFolder, "instance_mask");
+        if (!existsSync(configurationFile.instanceFolder)){
+            mkdirSync(configurationFile.instanceFolder);
+        }
+
         // folder use to save visualization data (RGB of label)
         configurationFile.visualizationFolder = join(configurationFile.baseFolder, "visualization");
         if (!existsSync(configurationFile.visualizationFolder)){

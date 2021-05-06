@@ -19,6 +19,7 @@ import SseAiTool from "./tools/SseAiTool";
 import SseAiIOGTool from "./tools/SseAiIOGTool";
 import SseBrushTool from "./tools/SseBrushTool";
 import segmentation from './segmentation';
+import ColorScheme from "color-scheme";
 // var segmentation = require('./segmentation');
 import $ from "jquery";
 
@@ -1062,16 +1063,21 @@ export default class SseEditor2d extends React.Component {
         this.onMsg("polygon", () => this.polygonTool.activate());
         this.onMsg("rectangle", () => this.rectangleTool.activate());
         this.onMsg("flood", () => this.floodTool.activate());
-        this.onMsg("brushmode", () => this.brushTool.activate());
+        this.onMsg("brushmode", () => {
+            if (this.isInstance === undefined || !this.isInstance) {
+                this.brushTool.activate();
+            }
+        });
         this.onMsg("superpixel", () => this.set2Superpixel());
+        this.onMsg("instancemode", () => this.set2Instance());
         this.onMsg("finer", () => {
-            if (this.visualization.visible == true) {
+            if (this.visualization.visible == true && (this.isInstance === undefined || !this.isInstance)) {
                 this.segmentation.finer();
                 this._updateSuperpixels();
             }
         });
         this.onMsg("coarser", () => {
-            if (this.visualization.visible == true) {
+            if (this.visualization.visible == true && (this.isInstance === undefined || !this.isInstance)) {
                 this.segmentation.coarser();
                 this._updateSuperpixels();
             }
@@ -1273,13 +1279,208 @@ export default class SseEditor2d extends React.Component {
         this.resetSuperpixels({});
     }
 
-    set2Superpixel() {
+    enableSuperpixelTool() {
         this.clearAux();
         this.superpixelTool.activate();
         // this.mainLayer.visible = false;
         // this.boundary.visible = true;
         this.visualization.visible = true;
         this.annotation.visible = false;
+    }
+
+    set2Superpixel() {
+        this.enableSuperpixelTool();
+        if (this.isInstance !== null && this.isInstance) {
+            this.istSppSwitch();
+            this.isInstance = false;
+        }
+    }
+
+    set2Instance() {
+        this.enableSuperpixelTool();
+        if (this.isInstance === undefined) {
+            console.log("set2instance first time");
+            
+            const maskImage = $("#mask");
+            let url = this.props.imageUrl;
+            maskImage.attr("src", "/instance_mask" + url.slice(0, url.indexOf('.')) + ".png");
+    
+            const mask = $("#mask").get(0);
+            const ctx = this.filterCanvas.getContext("2d");
+            let oriImgData = ctx.getImageData(0, 0, this.imageWidth, this.imageHeight);
+    
+            if (mask.width === this.imageWidth && mask.height === this.imageHeight) {
+                console.log("Instance mask data found");
+                let newAnnoData = ctx.createImageData(this.imageWidth, this.imageHeight);
+                let newVisualData = ctx.createImageData(this.imageWidth, this.imageHeight);
+                ctx.drawImage(mask, 0, 0);
+
+                let maskData = ctx.getImageData(0, 0, mask.width, mask.height);
+                let superData = this.ins2SuperData(maskData);
+                let pixelIndex = this._createPixelIndex(superData.data, 255);
+                let annoVisualList = this.idx2AnnoVisualData(newAnnoData, newVisualData, pixelIndex);
+                
+                this.backupSuperData = this._getSuperpixelData();
+                this.backupAnnoData = this._getAnnotationData();
+                this.backupVisualData = this._getVisualizationData();
+                this.backupIndex = this.pixelIndex;
+
+                this.superPixel.setImageData(superData, 0, 0);
+                this.annotation.setImageData(annoVisualList[0], 0, 0);
+                this.visualization.setImageData(annoVisualList[1], 0, 0);
+                this.pixelIndex = pixelIndex;
+
+                this._updateBoundaryLayer();
+
+                if (maskData !== null) {
+                    this.isInstance = true;
+                    maskImage.attr("src", '');
+                    ctx.putImageData(oriImgData, 0, 0);
+                }
+            }
+            else {
+                setTimeout(() => {
+                    this.set2Instance();
+                }, 100);
+            }
+        }
+        else {
+            this.istSppSwitch();
+            this.isInstance = true;
+        }
+    }
+
+    genInsColorDic() {
+        const scheme = new ColorScheme;
+        
+        scheme.from_hue(0)
+            .scheme('mono')
+            .variation('soft');
+        let color = scheme.colors();
+        let bgrInsColor = [color[0], color[1], color[3]];
+        // scheme.from_hue(30)
+        //     .scheme('mono')
+        //     .variation('soft');
+        // color = scheme.colors();
+        // bgrInsColor = bgrInsColor.concat([color[0], color[1], color[3]]);
+        // scheme.from_hue(330)
+        //     .scheme('mono')
+        //     .variation('soft');
+        // color = scheme.colors();
+        // bgrInsColor = bgrInsColor.concat([color[0], color[1], color[3]]);
+        let bgrInsColorDec = Array(bgrInsColor.length);
+        bgrInsColor.forEach((c, i) => {
+            bgrInsColorDec[i] = [parseInt("0x" + c.slice(0, 2)), 
+                parseInt("0x" + c.slice(2, 4)),
+                parseInt("0x" + c.slice(4, 6))]
+        })
+
+        scheme.from_hue(180)
+            .scheme('mono')
+            .variation('hard');
+        color = scheme.colors();
+        let fgrInsColor = [color[0], color[1], color[3]];
+        // scheme.from_hue(150)
+        //     .scheme('mono')
+        //     .variation('hard');
+        // color = scheme.colors();
+        // fgrInsColor = fgrInsColor.concat([color[0], color[1], color[3]]);
+        // scheme.from_hue(210)
+        //     .scheme('mono')
+        //     .variation('hard');
+        // color = scheme.colors();
+        // fgrInsColor = fgrInsColor.concat([color[0], color[1], color[3]]);
+        let fgrInsColorDec = Array(fgrInsColor.length);
+        fgrInsColor.forEach((c, i) => {
+            fgrInsColorDec[i] = [parseInt("0x" + c.slice(0, 2)), 
+                parseInt("0x" + c.slice(2, 4)),
+                parseInt("0x" + c.slice(4, 6))]
+        })
+
+        // 255 non-instance; 0 background instance; 1 foreground instance
+        this.insColorDic = {255 : [[255, 255, 255]],
+            0 : bgrInsColorDec,
+            1 : fgrInsColorDec
+        }
+        console.log(this.insColorDic);
+    }
+
+    getInsColor(anno) {
+        anno = (anno > 0 && anno < 255) ? 1 : anno;
+
+        let colorList = this.insColorDic[anno];
+        return colorList[Math.floor(Math.random() * colorList.length)];
+    }
+
+    ins2SuperData(data) {
+        let offset = 0;
+        for (var i = 0; i < this.imageHeight; i++) {
+            for (var j = 0; j < this.imageWidth; j++) {
+                data.data[offset + 1] = 0;
+                data.data[offset + 2] = 0;
+                data.data[offset + 3] = 255;
+                offset += 4;
+            }
+        }
+
+        return data;
+    }
+
+    idx2AnnoVisualData(newAnnoData, newVisualData, pixelIndex) {
+        let totalPix = this.imageHeight * this.imageWidth;
+        let threshold = this.instanceThreshold != undefined ? this.instanceThreshold : 0.03;
+        let instanceAnno = 0;
+
+        // 255 non-instance; 0 background instance; 1 foreground instance
+        for (let i = 0; i < 255; i++) {
+            let pixels = pixelIndex[i];
+            let instanceNum = pixels.length;
+            if (i == 0) {
+                instanceAnno = 255;
+            }
+            else {
+                instanceAnno = (instanceNum / totalPix) > threshold ? 1 : 0;
+                // console.log(instanceNum / totalPix, instanceAnno);
+            }
+
+            let color = this.getInsColor(instanceAnno);
+
+            for (let j = 0; j < pixels.length; j++) {
+                let offset = pixels[j];
+
+                newAnnoData.data[offset + 0] = instanceAnno;
+                newAnnoData.data[offset + 1] = instanceAnno;
+                newAnnoData.data[offset + 2] = instanceAnno;
+                newAnnoData.data[offset + 3] = 255;
+
+                newVisualData.data[offset + 0] = color[0];
+                newVisualData.data[offset + 1] = color[1];
+                newVisualData.data[offset + 2] = color[2];
+                newVisualData.data[offset + 3] = 255;
+            }
+        }
+
+        return [newAnnoData, newVisualData]
+    }
+
+    // superpixel2Instance
+    istSppSwitch() {
+        let tempSuperData = this._getSuperpixelData();
+        let tempAnnoData = this._getAnnotationData();
+        let tempVisualData = this._getVisualizationData();
+        let tempIndex = this.pixelIndex;
+
+        this.superPixel.setImageData(this.backupSuperData, 0, 0);
+        this.annotation.setImageData(this.backupAnnoData, 0, 0);
+        this.visualization.setImageData(this.backupVisualData, 0, 0);
+        this.pixelIndex = this.backupIndex;
+
+        this.backupSuperData = tempSuperData;
+        this.backupAnnoData = tempAnnoData;
+        this.backupVisualData = tempVisualData;
+        this.backupIndex = tempIndex;
+
+        this._updateBoundaryLayer();
     }
 
     updateLayers() {
@@ -1651,6 +1852,7 @@ export default class SseEditor2d extends React.Component {
             this.fileName = fileName;
             this.disableSmoothing();
             this.init2Superpixel();
+            this.genInsColorDic();
             this.undoRedo.init(document.URL, this.currentSample);
             this.setCurrentSample(this.currentSample); // Workaround for late registered components
             this.floodTool.initCanvas($("#sourceImage").get(0));
@@ -1969,7 +2171,7 @@ export default class SseEditor2d extends React.Component {
                 }
             }
         }
-        console.log(boundaryCount);
+        // console.log(boundaryCount);
 
         imgData.data.set(edgeMap);
         return imgData;
@@ -2019,7 +2221,7 @@ export default class SseEditor2d extends React.Component {
                 }
             }
         }
-        console.log(boundaryCount);
+        // console.log(boundaryCount);
 
         imgData.data.set(edgeMap);
         return imgData;
@@ -2080,7 +2282,7 @@ export default class SseEditor2d extends React.Component {
                 }
             }
         }
-        console.log(boundaryCount);
+        // console.log(boundaryCount);
 
         imgData.data.set(edgeMap);
         return imgData;
@@ -2182,24 +2384,29 @@ export default class SseEditor2d extends React.Component {
             }
         );
         this.boundary.setImageData(this.boundaryDataV2, 0, 0);
+        // this.boundaryState = 0;
     }
     
     _updateSuperpixels() {
         this.superPixel.setImageData(this.segmentation.result, 0, 0);
-        this._createPixelIndex(this.segmentation.result.numSegments);
+        let data = this._getSuperpixelData().data;
+        this.pixelIndex = this._createPixelIndex(data, this.segmentation.result.numSegments);
         this._updateBoundaryLayer();
         this.superPixel.opacity = 0;
     }
 
-    _updateAnnotation(pixels, labels=this.activeClassIndex) {
-        labels = (typeof labels === "object") ? labels : this._fillArray(new Int32Array(pixels.length), labels);
+    _updateAnnotation(pixels, index=null) {
+        if (this.isInstance !== null && this.isInstance && index == 0) {
+            return true;
+        }
+        // labels = (typeof labels === "object") ? labels : this._fillArray(new Int32Array(pixels.length), labels);
+        let labels = this._fillArray(new Int32Array(pixels.length), this.activeClassIndex);
         let updates = this._getDifferentialUpdates(pixels, labels);
         if (updates.pixels.length === 0) {
             return true;
         }
         this._updateHistory(updates);
         this._fillPixels(updates.pixels, updates.next);
-
     }
 
     _fillArray(array, value) {
@@ -2251,6 +2458,11 @@ export default class SseEditor2d extends React.Component {
             }
         }
         this.currentPixels = pixels;
+        if (index == 0 && this.isInstance != undefined && this.isInstance) {
+            this.currentPixels = null;
+            this.visualization.setImageData(vData, 0, 0);
+            return false;
+        }
         if (this.currentPixels !== null) {
             for (i = 0; i < pixels.length; ++i) {
                 offset = pixels[i];
@@ -2262,8 +2474,17 @@ export default class SseEditor2d extends React.Component {
     }
 
     _fillPixels = function (pixels, labels) {
-        console.log("current label index:", labels[0]);
-        console.log("number to change:", pixels.length);
+        let isInsMode = false;
+        let insAnno = null;
+        let insColor = null;
+        if (this.isInstance != undefined && this.isInstance) {
+            insAnno = labels[0] > 0 ? 1 : 0;
+            insColor = this.getInsColor(insAnno);
+            insColor = [insColor[0] / 255, insColor[1] / 255, insColor[2] / 255];
+            isInsMode = true;
+        }
+        // console.log("current label index:", labels[0]);
+        // console.log("number to change:", pixels.length);
         let i;
         let aData = this._getAnnotationData().data;
         let visualizationData = this._getVisualizationData();
@@ -2272,6 +2493,11 @@ export default class SseEditor2d extends React.Component {
             let index = labels[i];
             // console.log(typeof(this.activeClassIndex), typeof(index));
             let color = this.activeSoc.colorForIndexAsRGBArray(index);
+            if (isInsMode) {
+                index = insAnno;
+                color = insColor;
+                // console.log(color);
+            }
 
             aData[offset + 0] = index;
             aData[offset + 1] = index;
@@ -2291,10 +2517,9 @@ export default class SseEditor2d extends React.Component {
         // this.printAnno();
     } 
 
-    _createPixelIndex(numSegments) {
-        var pixelIndex = new Array(numSegments),
-            data = this._getSuperpixelData().data,
-            i;
+    _createPixelIndex(data, numSegments) {
+        var pixelIndex = new Array(numSegments);
+        var i = 0;
         for (i = 0; i < numSegments; ++i)
             pixelIndex[i] = [];
         for (i = 0; i < data.length; i += 4) {
@@ -2302,7 +2527,7 @@ export default class SseEditor2d extends React.Component {
             pixelIndex[index].push(i);
         }
         this.currentPixels = null;
-        this.pixelIndex = pixelIndex;
+        return pixelIndex;
     }
 
     _getClickOffset(pos) {

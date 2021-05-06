@@ -41,7 +41,7 @@ export default class SseSuperPixelTool extends SseTool {
         let superpixelData = this.editor._getSuperpixelData();
         let superpixelIndex = this._getEncodedLabel(superpixelData.data, offset);
         // console.log("super index", superpixelIndex);
-        let pixels = this.editor.pixelIndex[superpixelIndex];
+        // let pixels = this.editor.pixelIndex[superpixelIndex];
 
         this.editor._updateHighlight(superpixelIndex);
     }
@@ -72,7 +72,7 @@ export default class SseSuperPixelTool extends SseTool {
         let superpixelIndex = this._getEncodedLabel(superpixelData.data, offset);
         let pixels = this.editor.pixelIndex[superpixelIndex];
 
-        this.editor._updateAnnotation(pixels);
+        this.editor._updateAnnotation(pixels, superpixelIndex);
     }
 
     endRectangle() {
