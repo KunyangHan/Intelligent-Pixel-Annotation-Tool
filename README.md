@@ -1,4 +1,4 @@
-# interactive-segmentation-editor
+# Intelligent Pixel Annotation Tool (IPAT)
 A web based interactive image annotation tool. 
 
 <div>
