@@ -27,22 +27,22 @@ export default class SseToolbar2d extends SseToolbar {
 
     componentDidMount() {
         super.componentDidMount();
-        this.addCommand("undoCommand", "Undo", false, null, "undo", Undo, "disabled");
-        this.addCommand("redoCommand", "Redo", false, null, "redo", Redo, "disabled");
-        this.addCommand("pointerCommand", "Manipulation Tool", 1, "Alt", "pointer", CursorDefaultOutline);
+        this.addCommand("undoCommand", "Undo", false, null, "undo", Undo, "disabled", "Undo");
+        this.addCommand("redoCommand", "Redo", false, null, "redo", Redo, "disabled", "Redo");
+        this.addCommand("pointerCommand", "Manipulation Tool", 1, "Alt", "pointer", CursorDefaultOutline, null);
         this.addCommand("cutCommand", "Cut/Expand Tool", 1, "C", "cut", ContentCut, "disabled");
         this.addCommand("rectangleCommand", "Rectangle Tool", 1, "R", "rectangle", CropLandscape);
         this.addCommand("polygonCommand", "Polygon Tool", 1, "P", "polygon", VectorPolygon);
         this.addCommand("magicCommand", "Magic Tool", 1, "A", "flood", AutoFix);
         this.addCommand("instanceCommand", "Instance Mode", false, null, "instancemode", AutoFix);
-        this.addCommand("brushCommand", "Brush Mode", 1, null, "brushmode", Brush);
-        this.addCommand("superpixelCommand", "Superpixel mode", 1, null, "superpixel", ViewModule);
-        this.addCommand("finerCommand", "Superpixel Finer", false, null, "finer", Plus);
-        this.addCommand("coarserCommand", "Superpixel Coarser", false, null, "coarser", Minus);
-        this.addCommand("saveAnnotateCommand", "Save Annotate", false, null, "saveannotate", ContentSave);
-        this.addCommand("boundaryCommand", "Boundary On/Off", false, null, "boundaryonoff", Eraser);
-        this.addCommand("iogPCommand", "IOG Click", 1, null, "iogpoint", mdiAlphaCIcon);
-        this.addCommand("iogSCommand", "IOG Scribble", 1, null, "iogscribble", mdiAlphaSIcon);
+        this.addCommand("brushCommand", "Brush Mode", 1, null, "brushmode", Brush, null, "Brush");
+        this.addCommand("superpixelCommand", "Superpixel mode", 1, null, "superpixel", ViewModule, null, "Superpixel");
+        this.addCommand("finerCommand", "Superpixel Finer", false, null, "finer", Plus, null, "Finer");
+        this.addCommand("coarserCommand", "Superpixel Coarser", false, null, "coarser", Minus, null, "Coarser");
+        this.addCommand("saveAnnotateCommand", "Save Annotate", false, null, "saveannotate", ContentSave, null, "Save");
+        this.addCommand("boundaryCommand", "Boundary On/Off", false, null, "boundaryonoff", Eraser, null, "Boundary");
+        this.addCommand("iogPCommand", "IOG Click", 1, null, "iogpoint", mdiAlphaCIcon, null, "IOG_Click");
+        this.addCommand("iogSCommand", "IOG Scribble", 1, null, "iogscribble", mdiAlphaSIcon, null, "IOG_Scribble");
         this.addCommand("deleteCommand", "Delete Selection", false, "Del", "delete", DeleteForever, "disabled");
         this.addCommand("downCommand", "Send Backward", false, "Down", "moveback", ArrangeSendBackward, "disabled");
         this.addCommand("upCommand", "Bring Forward", false, "Up", "movefront", ArrangeBringForward, "disabled");
@@ -75,9 +75,9 @@ export default class SseToolbar2d extends SseToolbar {
                 <div className="group">
                     {this.renderCommand("brushCommand")}
                 </div>
-                <div className="group">
+                {/* <div className="group">
                     {this.renderCommand("instanceCommand")}
-                </div>
+                </div> */}
                 <div className="group">
                     {this.renderCommand("superpixelCommand")}
                     {this.renderCommand("finerCommand")}
