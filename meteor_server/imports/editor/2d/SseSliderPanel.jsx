@@ -224,24 +224,27 @@ export default class SseSliderPanel extends React.Component {
                         </IconButton>
                     </Link>
                 </div>
-                <div className="section"><h1>Brush Size</h1>
-                    <div className="mt3">
-                        Current Size: {this.state.brush + 1} pt
-                    </div>
-                    <div className="hflex">
-                        <div className="mt3">Brush Size</div>
-                        <div className="grow ml5">
-                            <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
-                                min={0}
-                                max={10}
-                                step={1}
-                                value={this.state.brush}
-                                onChange={this.brushChange.bind(this)}
-                            />
+                {this.props.currentTool == "brushCommand" 
+                    ? <div className="section"><h1>Brush Size</h1>
+                        <div className="mt3">
+                            Current Size: {this.state.brush + 1} pt
+                        </div>
+                        <div className="hflex">
+                            <div className="mt3">Brush Size</div>
+                            <div className="grow ml5">
+                                <Slider
+                                    style={{marginTop: "2px", marginBottom: "2px"}}
+                                    min={0}
+                                    max={10}
+                                    step={1}
+                                    value={this.state.brush}
+                                    onChange={this.brushChange.bind(this)}
+                                    />
+                            </div>
                         </div>
                     </div>
-                </div>
+                    : null
+                }
                 <div className="grow">
                     <div className={this.state.visiblePanel == "flood" ? "" : "display-none"}>
                         <SseFloodPanel/>

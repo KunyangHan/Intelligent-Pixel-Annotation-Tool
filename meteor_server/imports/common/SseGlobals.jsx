@@ -31,6 +31,10 @@ export default class SseGlobals {
         return "/visualization" + arg.slice(0, arg.indexOf('.')) + "_v.png";
     }
 
+    static getInstanceUrl(arg) {
+        return "/instance_mask" + arg.slice(0, arg.indexOf('.')) + ".png";
+    }
+
     static setCursor(cls) {
         if (this.prototype.cursor == cls)
             return;

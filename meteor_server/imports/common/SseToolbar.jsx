@@ -37,7 +37,12 @@ export default class SseToolbar extends React.Component {
             return (<div
                 className={"sse-command vflex flex-align-items-center " + (this.state[name])} title={commandDesc.title}
                 data-tippy-html={$(tippyKey).length ? tippyKey : ""}>
-                <IconButton onClick={e => this.sendMsg(commandDesc.actionMessage, {value: this.state[name]})}>
+                <IconButton onClick={e => {
+                        this.sendMsg(commandDesc.actionMessage, {value: this.state[name]});
+                        if (commandDesc.isToggle) {
+                            this.props.onToolChange(commandDesc.name);
+                        }
+                    }}>
                     <Icon/>
                 </IconButton>
                 <span className="title">{commandDesc.legend || commandDesc.shortcut}</span>
