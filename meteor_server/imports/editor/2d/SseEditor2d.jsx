@@ -60,6 +60,11 @@ export default class SseEditor2d extends React.Component {
             this.sendMsg("alert", {message: errorMsg});//or any message
             return false;
         };
+
+        this.instanceJson = {};
+        Meteor.call("instanceJson", props.imageUrl, (err, res) => {
+            this.instanceJson = res;
+        });
     }
 
     /**
@@ -979,6 +984,10 @@ export default class SseEditor2d extends React.Component {
         });
 
         this.onMsg("instanceSelection", ({instance}) => {
+            if (this.activeInstanceIndex != undefined) {
+                this.instanceDeHighlight(this.activeInstanceIndex, true);
+            }
+            this.instanceHighlight(instance.maskValue, true);
             this.activeInstanceIndex = instance.maskValue;
         });
 
@@ -1583,16 +1592,19 @@ export default class SseEditor2d extends React.Component {
     genInstanceList(index) {
         let insList = new Array();
         let totalPix = this.imageHeight * this.imageWidth;
-        let threshold = this.instanceThreshold != undefined ? this.instanceThreshold : 0.03;
+        let json = this.instanceJson;
+        json[0] = "background";
+        console.log(json);
 
         for (let i = 0; i < this.instanceNum; i++) {
-            if (index[i].size == 0) {
+            if (index[i].size < 100) {
                 continue;
             }
             let obj = new Object();
             obj.maskValue = i;
             obj.isForeground = i == 0 ? 255 : false;
             obj.class = 0;  // TODO: get class of prediction
+            obj.className = json[i];
 
             let instanceNum = index[i].size;
             obj.scale = instanceNum / totalPix;
@@ -2083,7 +2095,9 @@ export default class SseEditor2d extends React.Component {
             this.disableSmoothing();
             this.init2Superpixel();
             this.genInsColorDic();
-            this.initInstance();
+            setTimeout(() => {
+                this.initInstance();
+            }, 200);
             this.undoRedo.init(document.URL, this.currentSample);
             this.setCurrentSample(this.currentSample); // Workaround for late registered components
             this.floodTool.initCanvas($("#sourceImage").get(0));
@@ -2694,29 +2708,45 @@ export default class SseEditor2d extends React.Component {
         return updates;
     }
 
-    instanceHighlight(index) {
+    instanceHighlight(index, select=false) {
         let pixels = this.insPixelIndex[index];
         let vData = this._getVisualizationData();
 
         // var i, offset;
         // for (i = 0; i < pixels.length; ++i) {
             // offset = pixels[i];
+        let color = [177, 249, 153];
         for (let offset of pixels) {
-            vData.data[offset + 3] = 128;
+            if (select) {
+                vData.data[offset + 0] = color[0];
+                vData.data[offset + 1] = color[1];
+                vData.data[offset + 2] = color[2];
+            }
+            else {
+                vData.data[offset + 3] = 128;
+            }
         }
 
         this.visualization.setImageData(vData, 0, 0);
     }
 
-    instanceDeHighlight(index) {
+    instanceDeHighlight(index, select=false) {
         let pixels = this.insPixelIndex[index];
         let vData = this._getVisualizationData();
 
         // var i, offset;
         // for (i = 0; i < pixels.length; ++i) {
         //     offset = pixels[i];
+        let color = this.props.instanceList.mask2ins.get(index).colorList;
         for (let offset of pixels) {
-            vData.data[offset + 3] = 255;
+            if (select) {
+                vData.data[offset + 0] = color[0];
+                vData.data[offset + 1] = color[1];
+                vData.data[offset + 2] = color[2];
+            }
+            else {
+                vData.data[offset + 3] = 255;
+            }
         }
 
         this.visualization.setImageData(vData, 0, 0);

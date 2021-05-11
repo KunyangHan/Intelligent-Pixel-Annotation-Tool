@@ -96,7 +96,7 @@ export default class SseInstanceChooser extends SseToolbar {
                                     }}>
                             <div
                                 className="hflex flex-align-items-center w100">
-                                {objDesc.isForeground ? "F" : "B"}
+                                {objDesc.className}
                             </div>
                         </Button>
                     </div>

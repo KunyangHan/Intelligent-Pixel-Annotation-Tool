@@ -184,6 +184,13 @@ Meteor.methods({
         return data;
     },
 
+    'instanceJson'(imageUrl) {
+        let name = decodeURIComponent(imageUrl.slice(4, imageUrl.indexOf('.')));
+        let path = join(config.instanceFolder, name + '.json');
+
+        return JSON.parse(readFileSync(path))
+    },
+
     'saveScribble'(img, imageUrl, type) {
         let name = decodeURIComponent(imageUrl.slice(4, imageUrl.indexOf('.')));
         let data = img.replace(/^data:image\/\w+;base64,/, "");
