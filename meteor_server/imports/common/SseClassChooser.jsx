@@ -190,7 +190,7 @@ export default class SseClassChooser extends SseToolbar {
                                         "margin": "1px",
                                         "backgroundColor": objDesc.color,
                                         "color": SseGlobals.computeTextColor(objDesc.color),
-                                        "border": isSelected ? "solid 1px #E53935" : "solid 1px black",
+                                        "border": isSelected ? "solid 1px #ffe100" : "solid 1px black",
                                         "padding": "0 3px"
                                     }}>
                             <div

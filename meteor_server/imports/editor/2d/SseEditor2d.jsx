@@ -990,6 +990,22 @@ export default class SseEditor2d extends React.Component {
             this.instanceDeHighlight(instance.maskValue);
         });
 
+        this.onMsg("recommendSelection", ({recommend}) => {
+            this.curRecommendIdx = recommend.idx;
+            this.recommendSelect(recommend);
+        });
+
+        this.onMsg("editRecommend", () => {
+            this.initInstanceVisualBgr();
+            setTimeout(() => {
+                this.resizeCanvas();
+            }, 500);
+        });
+
+        this.onMsg("instanceCheckbox", (arg) => {
+            this.updateInstanceVisual(arg.ins);
+        });
+
         this.onMsg("undo", () => this.undo());
         this.onMsg("redo", () => this.redo());
 
@@ -1260,6 +1276,10 @@ export default class SseEditor2d extends React.Component {
         // this.interval = setInterval(() => this.tick(), 30000);
     }
 
+    recommendSelect(rcm) {
+        this.visualization.setImageData(rcm.visual, 0, 0);
+    }
+
     componentWillUnmount(){
         SseMsg.unregister(this);
         // clearInterval(this.interval);
@@ -1279,10 +1299,10 @@ export default class SseEditor2d extends React.Component {
     }
 
     init2Superpixel() {
-        this._updateVisualization();
-        this.superpixelTool.activate();
+        // this._updateVisualization();
+        // this.superpixelTool.activate();
         // this.mainLayer.visible = false;
-        this.boundary.visible = true;
+        // this.boundary.visible = true;
         this.visualization.visible = true;
         this.annotation.visible = false;
         this.resetSuperpixels({});
@@ -1299,10 +1319,6 @@ export default class SseEditor2d extends React.Component {
 
     set2Superpixel() {
         this.enableSuperpixelTool();
-        if (this.isInstance !== null && this.isInstance) {
-            this.istSppSwitch();
-            this.isInstance = false;
-        }
     }
 
     initInstance() {
@@ -1319,22 +1335,15 @@ export default class SseEditor2d extends React.Component {
             let maskData = ctx.getImageData(0, 0, mask.width, mask.height);
             let superData = this.ins2SuperData255(maskData);
             this.instanceNum = superData[1] + 1;
-            let pixelIndex = this._createPixelIndex(superData[0].data, this.instanceNum);
-            let newInstance = this.genInstanceList(pixelIndex);
-            // let annoVisualList = this.idx2AnnoVisualData(newAnnoData, newVisualData, pixelIndex);
-
-            // this.backupSuperData = this._getSuperpixelData();
-            // this.backupAnnoData = this._getAnnotationData();
-            // this.backupVisualData = this._getVisualizationData();
-            // this.backupIndex = this.pixelIndex;
+            this.insPixelIndex = this._createPixelIndex(superData[0].data, this.instanceNum);
+            let newInstance = this.genInstanceList(this.insPixelIndex);
+            let newRecommend = this.genRecommend(newInstance, [this.genRecommendScale.bind(this), this.genRecommendPos.bind(this)]);
 
             this.instanceMask.setImageData(superData[0], 0, 0);
-            // this.annotation.setImageData(annoVisualList[0], 0, 0);
-            // this.visualization.setImageData(annoVisualList[1], 0, 0);
-            this.insPixelIndex = pixelIndex;
 
             console.log(newInstance);
             this.sendMsg("addInstanceList", {list: newInstance});
+            this.sendMsg("genRecommend", {list: newRecommend});
 
             // this._updateBoundaryLayer();
 
@@ -1414,6 +1423,9 @@ export default class SseEditor2d extends React.Component {
         //     .variation('soft');
         // color = scheme.colors();
         // bgrInsColor = bgrInsColor.concat([color[0], color[1], color[3]]);
+        // --------------Note : comment line below to gen multi color--------------
+        bgrInsColor = ["bf6060"];
+        // ------------------------------------------------------------------------
         let bgrInsColorDec = Array(bgrInsColor.length);
         bgrInsColor.forEach((c, i) => {
             bgrInsColorDec[i] = [parseInt("0x" + c.slice(0, 2)), 
@@ -1436,6 +1448,9 @@ export default class SseEditor2d extends React.Component {
         //     .variation('hard');
         // color = scheme.colors();
         // fgrInsColor = fgrInsColor.concat([color[0], color[1], color[3]]);
+        // --------------Note : comment line below to gen multi color--------------
+        fgrInsColor = ["41e8dd"];
+        // ------------------------------------------------------------------------
         let fgrInsColorDec = Array(fgrInsColor.length);
         fgrInsColor.forEach((c, i) => {
             fgrInsColorDec[i] = [parseInt("0x" + c.slice(0, 2)), 
@@ -1477,6 +1492,94 @@ export default class SseEditor2d extends React.Component {
         return [data, max_i];
     }
 
+    genRecommendVisual(rcm) {
+        const ctx = this.filterCanvas.getContext("2d");
+        let newVisualData = ctx.createImageData(this.imageWidth, this.imageHeight);
+        let maskList = rcm.foreground;
+
+        for (let i = 0; i < newVisualData.data.length; i++) {
+            newVisualData.data[i] = 255;
+        }
+
+        for (let i = 0; i < maskList.length; i++) {
+            let color = this.getInsColor(1); // foreground
+            // let color = insList[i].colorList;
+            for (let offset of this.insPixelIndex[maskList[i]]) {
+                newVisualData.data[offset + 0] = color[0];
+                newVisualData.data[offset + 1] = color[1];
+                newVisualData.data[offset + 2] = color[2];
+                newVisualData.data[offset + 3] = 255;
+            }
+        }
+
+        return newVisualData;
+    }
+
+    genRecommend(insList, funList) {
+        let rcmList = new Array();
+
+        for (let i = 0; i < funList.length; i++) {
+            let rcm = funList[i](insList);
+            rcm.idx = i;
+            rcm.visual = this.genRecommendVisual(rcm);
+
+            rcmList.push(rcm);
+        }
+        this.curRecommendIdx = 0;
+        this.visualization.setImageData(rcmList[0].visual, 0, 0);
+
+        return rcmList;
+    }
+
+    genRecommendScale(insList) {
+        let threshold = this.instanceThreshold != undefined ? this.instanceThreshold : 0.03;
+        let rcm = new Object();
+        rcm.mode = "Scale";
+        rcm.foreground = new Array();
+        // rcm.insList = new Array();
+
+        for (let i = 1; i < insList.length; i++) {
+            let ins = insList[i];
+            if (ins.scale > threshold) {
+                rcm.foreground.push(ins.maskValue);
+                // rcm.insList.push(ins);
+            }
+        }
+        console.log(rcm.foreground);
+
+        return rcm;
+    }
+
+    calEuclidean(target1, target2) {
+        let h2 = Math.pow(target1[0] - target2[0], 2);
+        let w2 = Math.pow(target1[1] - target2[1], 2);
+        
+        return Math.sqrt(h2 + w2);
+    }
+
+    genRecommendPos(insList) {
+        // let targetWidth = this.imageWidth / 2;
+        // let targetHeight = this.imageHeight / 2;
+        let threshold = this.insPosThreshold != undefined ? this.insPosThreshold : 0.5;
+        let target = [this.imageHeight / 2, this.imageWidth / 2];
+        let maxLen = this.calEuclidean(target, [0, 0]);
+        let rcm = new Object();
+        rcm.mode = "Position";
+        rcm.foreground = new Array();
+
+        for (let i = 1; i < insList.length; i++) {
+            let ins = insList[i];
+            let len = this.calEuclidean(target, ins.center);
+            
+            if ((len / maxLen) < threshold) {
+                rcm.foreground.push(ins.maskValue);
+            }
+        }
+        console.log(rcm.foreground);
+
+        return rcm;
+    }
+
     genInstanceList(index) {
         let insList = new Array();
         let totalPix = this.imageHeight * this.imageWidth;
@@ -1488,10 +1591,24 @@ export default class SseEditor2d extends React.Component {
             }
             let obj = new Object();
             obj.maskValue = i;
+            obj.isForeground = i == 0 ? 255 : false;
             obj.class = 0;  // TODO: get class of prediction
 
             let instanceNum = index[i].size;
-            obj.isForeground = (instanceNum / totalPix) > threshold ? 1 : 0;
+            obj.scale = instanceNum / totalPix;
+
+            let h, w;
+            let left = 1e7, right = 0, up = 1e7, down = 0;
+            for (let offset of index[i]) {
+                h = (offset / 4) / this.imageWidth;
+                w = (offset / 4) % this.imageWidth;
+
+                left = left > w ? w : left;
+                right = right < w ? w : right;
+                up = up > h ? h : up;
+                down = down < h ? h : down;
+            }
+            obj.center = [(up + down) / 2, (left + right) / 2];
 
             insList.push(obj);
         }
@@ -1554,6 +1671,40 @@ export default class SseEditor2d extends React.Component {
         this.backupIndex = tempIndex;
 
         this._updateBoundaryLayer();
+    }
+
+    updateInstanceVisual(maskValue, isF=null) {
+        let pixels = this.insPixelIndex[maskValue];
+        let color = [255, 255, 255]
+        if (isF == null) {   
+            color = this.props.instanceList.mask2ins.get(maskValue).colorList;
+        }
+        else {
+            color = this.getInsColor(isF ? 1 : 0);
+        }
+        let vData = this._getVisualizationData();
+
+        for (let offset of pixels) {
+            vData.data[offset + 0] = color[0];
+            vData.data[offset + 1] = color[1];
+            vData.data[offset + 2] = color[2];
+            vData.data[offset + 3] = 255;
+        }
+        
+        this.visualization.setImageData(vData, 0, 0);
+    }
+
+    initInstanceVisualBgr() {
+        let insList = this.props.instanceList.insList;
+        let rcmList = this.props.recommendList;
+        let fgrSet = new Set(rcmList.idx2Rcm.get(this.curRecommendIdx).foreground);
+
+        insList.forEach((ins) => {
+            let mv = ins.maskValue;
+            if (ins.isForeground != 255 && !fgrSet.has(mv)) {
+                this.updateInstanceVisual(mv, false);
+            }
+        });
     }
 
     updateLayers() {
@@ -1948,17 +2099,17 @@ export default class SseEditor2d extends React.Component {
             statLabel += ", " + pointCount + " points";
         this.sendMsg("bottom-right-label", {message: statLabel});
 
-        const classCounter = new Map();
-        const layerCounter = new Map();
-        [...Array(this.activeSoc.classesCount).keys()].forEach((v, k) => classCounter.set(k, 0));
-        this.mainLayer.children.forEach((path) => {
-            classCounter.set(path.feature.classIndex, classCounter.get(path.feature.classIndex) + 1);
-            layerCounter.set(path.feature.layer || 0, (layerCounter.get(path.feature.layer || 0) + 1) || 1);
-        });
-        this.sendMsg("layer-object-count", {map: layerCounter});
-        classCounter.forEach((v, k) => {
-            this.sendMsg("class-instance-count", {classIndex: k, count: v})
-        });
+        // const classCounter = new Map();
+        // const layerCounter = new Map();
+        // [...Array(this.activeSoc.classesCount).keys()].forEach((v, k) => classCounter.set(k, 0));
+        // this.mainLayer.children.forEach((path) => {
+        //     classCounter.set(path.feature.classIndex, classCounter.get(path.feature.classIndex) + 1);
+        //     layerCounter.set(path.feature.layer || 0, (layerCounter.get(path.feature.layer || 0) + 1) || 1);
+        // });
+        // this.sendMsg("layer-object-count", {map: layerCounter});
+        // classCounter.forEach((v, k) => {
+        //     this.sendMsg("class-instance-count", {classIndex: k, count: v})
+        // });
     }
 
     /**

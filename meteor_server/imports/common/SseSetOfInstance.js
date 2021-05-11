@@ -43,6 +43,13 @@ export default class SetOfInstance {
         }
     }
 
+    changeForeground(mask, isF) {
+        let ins = this.mask2ins.get(mask);
+        ins.isForeground = isF;
+        ins.colorList = this.getInsColorList(isF);
+        ins.colorStr = this.getInsColorStr(isF);
+    }
+
     genInsColorDic() {
         const scheme = new ColorScheme;
         
@@ -61,6 +68,9 @@ export default class SetOfInstance {
         //     .variation('soft');
         // color = scheme.colors();
         // bgrInsColor = bgrInsColor.concat([color[0], color[1], color[3]]);
+        // --------------Note : comment line below to gen multi color--------------
+        bgrInsColor = ["bf6060"];
+        // ------------------------------------------------------------------------
         let bgrInsColorDec = Array(bgrInsColor.length);
         bgrInsColor.forEach((c, i) => {
             bgrInsColorDec[i] = [parseInt("0x" + c.slice(0, 2)), 
@@ -84,6 +94,9 @@ export default class SetOfInstance {
         //     .variation('hard');
         // color = scheme.colors();
         // fgrInsColor = fgrInsColor.concat([color[0], color[1], color[3]]);
+        // --------------Note : comment line below to gen multi color--------------
+        fgrInsColor = ["41e8dd"];
+        // ------------------------------------------------------------------------
         let fgrInsColorDec = Array(fgrInsColor.length);
         fgrInsColor.forEach((c, i) => {
             fgrInsColorDec[i] = [parseInt("0x" + c.slice(0, 2)), 
@@ -97,23 +110,29 @@ export default class SetOfInstance {
             0 : bgrInsColorDec,
             1 : fgrInsColorDec
         }
-        this.insColorDicStr = {255 : [[255, 255, 255]],
+        this.insColorDicStr = {255 : ["#FFFFFF"],
             0 : bgrInsColor,
             1 : fgrInsColor
         }
     }
 
     getInsColorStr(isF) {
-        let i = isF ? 1 : 0;
+        if (typeof isF == "boolean"){
+            isF = isF ? 1 : 0;
+        }
+        // let i = isF ? 1 : 0;
 
-        let colorList = this.insColorDicStr[i];
+        let colorList = this.insColorDicStr[isF];
         return colorList[Math.floor(Math.random() * colorList.length)];
     }
 
     getInsColorList(isF) {
-        let i = isF ? 1 : 0;
+        if (typeof isF == "boolean"){
+            isF = isF ? 1 : 0;
+        }
+        // let i = isF ? 1 : 0;
 
-        let colorList = this.insColorDicList[i];
+        let colorList = this.insColorDicList[isF];
         return colorList[Math.floor(Math.random() * colorList.length)];
     }
 }

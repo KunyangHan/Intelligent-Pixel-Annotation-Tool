@@ -3,6 +3,7 @@ import React from 'react';
 
 import SseClassChooser from "../../common/SseClassChooser";
 import SseInstanceChooser from "../../common/SseInstanceChooser";
+import SseRecommendChooser from "../../common/SseRecommendChooser";
 
 import SseEditor2d from "./SseEditor2d";
 import SseSliderPanel from "./SseSliderPanel";
@@ -21,6 +22,7 @@ import SseTheme from "../../common/SseTheme";
 import SseToolbar2d from "./SseToolbar2d";
 import SseSetOfClasses from "../../common/SseSetOfClasses";
 import SetOfInstance from "../../common/SseSetOfInstance";
+import SetOfRecommend from "../../common/SseSetOfRecommend";
 import SseTooltips2d from "./SseTooltips2d";
 import tippy from "tippy.js";
 import $ from "jquery";
@@ -35,11 +37,16 @@ export default class SseApp2d extends React.Component {
 
         this.state.imageReady = false;
         this.state.classesReady = false;
-        
+        this.state.changeCls = false;
+        this.state.isRecommend = true;
+
         let insList = new SetOfInstance();
         this.state.instanceList = insList;
+        let rcmList = new SetOfRecommend();
+        this.state.recommendList = rcmList;
 
         console.log(this.state.instanceList);
+        console.log(this.state.recommendList);
         
         this.classesSets = [];
         Meteor.call("getClassesSets", (err, res) => {
@@ -68,6 +75,32 @@ export default class SseApp2d extends React.Component {
             let insList = this.state.instanceList;
             insList.addIns(arg.list);
             console.log(insList.insList);
+
+            this.setState({instanceList : insList});
+        });
+
+        this.onMsg("genRecommend", (arg) => {
+            let rcmList = this.state.recommendList;
+            rcmList.addRcm(arg.list);
+
+            this.setState({recommendList : rcmList});
+        });
+
+        this.onMsg("editRecommend", (arg) => {
+            let insList = this.state.instanceList;
+            let rcm = this.state.recommendList.idx2Rcm.get(arg.rcmIdx);
+            // console.log(rcm.foreground);
+            for (let i = 0; i < rcm.foreground.length; i++) {
+                insList.changeForeground(rcm.foreground[i], true);
+            }
+
+            this.setState({isRecommend : false, instanceList : insList});
+            // this.sendMsg("componentChange");
+        });
+
+        this.onMsg("instanceCheckbox", (arg) => {
+            let insList = this.state.instanceList;
+            insList.changeForeground(arg.ins, arg.isF);
 
             this.setState({instanceList : insList});
         });
@@ -105,20 +138,26 @@ export default class SseApp2d extends React.Component {
 
     render() {
         const ready = this.state.imageReady && this.state.classesReady;
+        const rcmStage = ready && this.state.isRecommend;
+        const editStage = ready && !this.state.isRecommend;
         return (
             <div className="w100 h100">
                 <MuiThemeProvider theme={new SseTheme().theme}>
                     <div className="w100 h100 editor">
                         <div className="vflex w100 h100 box1">
-                            <SseToolbar2d onToolChange={this.onToolChange.bind(this)} />
+                            {editStage
+                                ? <SseToolbar2d onToolChange={this.onToolChange.bind(this)} />
+                                : null}
                             <div className="hflex grow box2 relative h0">
-                                {ready ? <SseInstanceChooser instanceList={this.state.instanceList}/> : null}
-                                {ready ? <SseClassChooser classesSets={this.classesSets}/> : null}
+                                {rcmStage ? <SseRecommendChooser recommendList={this.state.recommendList}/> : null}
+                                {editStage ? <SseInstanceChooser instanceList={this.state.instanceList}/> : null}
+                                {editStage && this.state.changeCls ? <SseClassChooser classesSets={this.classesSets}/> : null}
                                 <div id="canvasContainer" className="grow relative">
                                     {ready
                                         ? <SseEditor2d
                                             imageUrl={this.props.imageUrl}
-                                            instanceList={this.instanceList}/>
+                                            instanceList={this.state.instanceList}
+                                            recommendList={this.state.recommendList}/>
                                         : null}
                                     <div id="waiting"
                                          className="hflex flex-align-items-center absolute w100 h100">
@@ -128,9 +167,11 @@ export default class SseApp2d extends React.Component {
                                     </div>
 
                                 </div>
-                                <SseSliderPanel 
+                                {editStage
+                                    ? <SseSliderPanel 
                                     imageUrl={this.props.imageUrl}
-                                    currentTool={this.state.currentTool}/>
+                                    currentTool={this.state.currentTool}/> 
+                                    : null}
                             </div>
                             <SseBottomBar/>
                         </div>
