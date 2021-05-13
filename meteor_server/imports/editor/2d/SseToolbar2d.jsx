@@ -5,13 +5,20 @@ import {
     CursorDefaultOutline, DeleteForever, Download, Json, Looks, Redo, Undo, VectorPolygon, ContentSave,
     Eraser, PlusBox, Plus, MinusBox, Minus, Brush, ViewModule} from 'mdi-material-ui';
 import Icon from "@mdi/react";
-import { mdiAlphaCBoxOutline, mdiAlphaSBoxOutline } from '@mdi/js';
+import { mdiAlphaCBoxOutline, mdiAlphaSBoxOutline, mdiEye } from '@mdi/js';
 import SseBranding from "../../common/SseBranding";
 
 class mdiAlphaSIcon extends React.Component{
     render() {
         return(
             <Icon path={mdiAlphaSBoxOutline} size={1} />
+        );
+    }
+}
+class mdiEyeIcon extends React.Component{
+    render() {
+        return(
+            <Icon path={mdiEye} size={1} />
         );
     }
 }
@@ -39,6 +46,7 @@ export default class SseToolbar2d extends SseToolbar {
         this.addCommand("superpixelCommand", "Superpixel mode", 1, null, "superpixel", ViewModule, null, "Superpixel");
         this.addCommand("finerCommand", "Superpixel Finer", false, null, "finer", Plus, null, "Finer");
         this.addCommand("coarserCommand", "Superpixel Coarser", false, null, "coarser", Minus, null, "Coarser");
+        this.addCommand("cutoutCommand", "Cutout", false, null, "cutoutForeground", mdiEyeIcon, null, "Cutout");
         this.addCommand("saveAnnotateCommand", "Save Annotate", false, null, "saveannotate", ContentSave, null, "Save");
         this.addCommand("boundaryCommand", "Boundary On/Off", false, null, "boundaryonoff", Eraser, null, "Boundary");
         this.addCommand("iogPCommand", "IOG Click", 1, null, "iogpoint", mdiAlphaCIcon, null, "IOG_Click");
@@ -89,6 +97,7 @@ export default class SseToolbar2d extends SseToolbar {
                     {this.renderCommand("iogSCommand")}
                 </div>
                 <div className="group">
+                    {this.renderCommand("cutoutCommand")}
                     {this.renderCommand("saveAnnotateCommand")}
                 </div>
                 {/* <div className="group">

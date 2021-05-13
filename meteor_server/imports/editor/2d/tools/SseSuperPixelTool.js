@@ -57,8 +57,10 @@ export default class SseSuperPixelTool extends SseTool {
     }
 
     onMouseDown(event) {
-        if (!this.isLeftButton(event) || event.modifiers.space)
-            return super.viewDown(event);
+        let isRight = false;
+        if (!this.isLeftButton(event))
+            isRight = true;
+
         let point;
         if (this.editor.snapIndicator) {
             point = this.editor.snapPoint;
@@ -66,13 +68,13 @@ export default class SseSuperPixelTool extends SseTool {
         else {            
             point = this.editor.rasterLayer.globalToLocal(this.editor.keepPointInsideRaster(event.point));
         }
-        
+
         let offset = this.editor._getClickOffset(point);
         let superpixelData = this.editor._getSuperpixelData();
         let superpixelIndex = this._getEncodedLabel(superpixelData.data, offset);
         let pixels = this.editor.pixelIndex[superpixelIndex];
 
-        this.editor._updateAnnotation(pixels, superpixelIndex);
+        this.editor._updateAnnotation(pixels, isRight);
     }
 
     endRectangle() {

@@ -57,10 +57,11 @@ export default class SseRecommendChooser extends SseToolbar {
         return (
             <div className="sse-recommend-chooser vflex scroller"
                  style={{"backgroundColor": "#393536", "padding": "5px 5px 0 0"}}>
-                {this.props.recommendList.rcmList.map((objDesc, idx) => {
-                    const isSelected = objDesc.idx == this.state.activeRecommendIndex;
-                    return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}>
-                        <Button className="class-button"
+                {this.props.instanceReady 
+                    ? (this.props.recommendList.rcmList.map((objDesc, idx) => {
+                        const isSelected = objDesc.idx == this.state.activeRecommendIndex;
+                        return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}>
+                            <Button className="class-button"
                                 onClick={() => {
                                     this.sendMsg('recommendSelection', {recommend: objDesc});
                                 }}
@@ -74,14 +75,28 @@ export default class SseRecommendChooser extends SseToolbar {
                                         "border": isSelected ? "solid 3px #ffe100" : "solid 1px black",
                                         "padding": "0 3px"
                                     }}>
-                            <div
-                                className="hflex flex-align-items-center w100">
-                                {objDesc.mode}
-                            </div>
-                        </Button>
-                    </div>
-                })}
-                <Button onClick={() => this.sendMsg('editRecommend', {rcmIdx : this.state.activeRecommendIndex})}>Edit</Button>
+                                <div
+                                    className="hflex flex-align-items-center w100">
+                                    {objDesc.mode}
+                                </div>
+                            </Button>
+                        </div>
+                    }))
+                    : null}
+                {this.props.instanceReady 
+                    ? <Button onClick={() => this.sendMsg('editRecommend', {rcmIdx : this.state.activeRecommendIndex})}>Edit</Button>
+                    : <Button 
+                        onClick={() => this.sendMsg('instanceReady')}
+                        style={
+                            {
+                                "width": "100%",
+                                "minHeight": "40px",
+                                "margin": "1px",
+                                "border": "solid 1px #e8fffd",
+                                "padding": "0 3px",
+                                "top": "40%"
+                            }}>
+                        Remove Background</Button>}
             </div>
         );
     }

@@ -14,7 +14,7 @@ export default class SseBrushTool extends SseTool{
         this.pixels = [];
     }
 
-    add(x, y) {
+    add(x, y, isRight) {
         x = Math.floor(x);
         y = Math.floor(y);
         let r = this.editor.brushSize;
@@ -29,30 +29,35 @@ export default class SseBrushTool extends SseTool{
                 temp.push(offset);
             }
         }
-        this.editor._updateAnnotation(temp);
+        this.editor._updateAnnotation(temp, isRight);
     }
 
     onMouseDown(event) {
-        if (!this.isLeftButton(event) || event.modifiers.space)
-            return super.viewDown(event);
+        let isRight = false;
+        if (!this.isLeftButton(event))
+            isRight = true;
+
         const point = this.editor.rasterLayer.globalToLocal(this.editor.keepPointInsideRaster(event.point));
 
-        this.add(point.x, point.y);
+        this.add(point.x, point.y, isRight);
     }
 
     onMouseDrag(event) {
-        if (!this.isLeftButton(event) || event.modifiers.space)
-            return super.viewDrag(event);
+        let isRight = false;
+        if (!this.isLeftButton(event))
+            isRight = true;
 
         const point = this.editor.rasterLayer.globalToLocal(event.point);
-        this.add(point.x, point.y);
+        this.add(point.x, point.y, isRight);
     }
 
     onMouseUp(event) {
-        if (!this.isLeftButton(event) || event.modifiers.space)
-            return super.viewDrag(event);
+        let isRight = false;
+        if (!this.isLeftButton(event))
+            isRight = true;
+
         const point = this.editor.rasterLayer.globalToLocal(event.point);
-        this.add(point.x, point.y);
+        this.add(point.x, point.y, isRight);
         this.finish();
     }
 }

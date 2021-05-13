@@ -40,6 +40,7 @@ export default class SseApp2d extends React.Component {
         this.state.classesReady = false;
         this.state.changeCls = false;
         this.state.isRecommend = true;
+        this.state.instanceReady = false;
 
         let insList = new SetOfInstance();
         this.state.instanceList = insList;
@@ -77,7 +78,11 @@ export default class SseApp2d extends React.Component {
         this.onMsg("editor-ready", (arg) => {
             this.sendMsg("active-soc", {value: this.classesSets[0]});
         });
-        
+
+        this.onMsg("instanceReady", (arg) => {
+            this.setState({instanceReady: true});
+        });
+
         this.onMsg("genRecommend", (arg) => {
             let rcmList = this.state.recommendList;
             rcmList.addRcm(arg.list);
@@ -198,7 +203,11 @@ export default class SseApp2d extends React.Component {
                                 ? <SseToolbar2d onToolChange={this.onToolChange.bind(this)} />
                                 : null}
                             <div className="hflex grow box2 relative h0">
-                                {rcmStage ? <SseRecommendChooser recommendList={this.state.recommendList}/> : null}
+                                {rcmStage 
+                                    ? <SseRecommendChooser 
+                                        recommendList={this.state.recommendList}
+                                        instanceReady={this.state.instanceReady}/> 
+                                    : null}
                                 {editStage ? <SseInstanceChooser instanceList={this.state.instanceList}/> : null}
                                 {editStage && this.state.changeCls 
                                     ? <SseClassChooser 

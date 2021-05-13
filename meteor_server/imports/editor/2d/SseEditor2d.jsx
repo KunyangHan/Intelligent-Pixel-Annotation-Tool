@@ -985,6 +985,8 @@ export default class SseEditor2d extends React.Component {
                 }
             }
         });
+        
+        this.onMsg("instanceReady", () => this.visualization.visible = true);
 
         this.onMsg("changeClass", (arg) => {
             setTimeout(() => {
@@ -1035,6 +1037,8 @@ export default class SseEditor2d extends React.Component {
         this.onMsg("newInsMask", (arg) => {
             this.newInsMask(arg.maskIdx);
         });
+
+        this.onMsg("cutoutForeground", () => this.cutoutForeground());
 
         this.onMsg("undo", () => this.undo());
         this.onMsg("redo", () => this.redo());
@@ -1378,6 +1382,7 @@ export default class SseEditor2d extends React.Component {
             // this._updateBoundaryLayer();
 
             ctx.putImageData(oriImgData, 0, 0);
+            this.visualization.visible = false;
         }
     }
 
@@ -1564,7 +1569,7 @@ export default class SseEditor2d extends React.Component {
     genRecommendScale(insList) {
         let threshold = this.instanceThreshold != undefined ? this.instanceThreshold : 0.03;
         let rcm = new Object();
-        rcm.mode = "Scale";
+        rcm.mode = "Preset, based on scale";
         rcm.foreground = new Array();
         // rcm.insList = new Array();
 
@@ -1590,11 +1595,11 @@ export default class SseEditor2d extends React.Component {
     genRecommendPos(insList) {
         // let targetWidth = this.imageWidth / 2;
         // let targetHeight = this.imageHeight / 2;
-        let threshold = this.insPosThreshold != undefined ? this.insPosThreshold : 0.5;
+        let threshold = this.insPosThreshold != undefined ? this.insPosThreshold : 0.3;
         let target = [this.imageHeight / 2, this.imageWidth / 2];
         let maxLen = this.calEuclidean(target, [0, 0]);
         let rcm = new Object();
-        rcm.mode = "Position";
+        rcm.mode = "Preset, based on position";
         rcm.foreground = new Array();
 
         for (let i = 1; i < insList.length; i++) {
@@ -2458,6 +2463,66 @@ export default class SseEditor2d extends React.Component {
         console.log(log);
     }
 
+    cutoutForeground() {
+        let alpha = 255;
+        if (this.isCutoutFgr == undefined || !this.isCutoutFgr){
+            alpha = 0;
+            this.isCutoutFgr = true;
+            this.visualization.visible = false;
+        }
+        else {
+            this.isCutoutFgr = false;
+            this.visualization.visible = true;
+        }
+        let width = this.visualization.width;
+        let height = this.visualization.height;
+        let imageData = this.raster.getImageData(new Paper.Rectangle(0, 0, width, height));
+        const sourceImageData = this.sourceImageData;
+
+        const ctx = this.filterCanvas.getContext("2d");
+        let newImageData = ctx.createImageData(this.imageWidth, this.imageHeight);
+        for (let i = 0; i < newImageData.data.length; i += 4) {
+            newImageData.data[i + 0] = 0;
+            newImageData.data[i + 1] = 0;
+            newImageData.data[i + 2] = 0;
+            newImageData.data[i + 3] = 255;
+        }
+
+        if (this.isCutoutFgr) {
+            for (let i = 0; i < imageData.data.length; i++) {
+                imageData.data[i] = 255;
+            }
+            this.props.instanceList.insList.forEach(((ins) => {
+                if (ins.isForeground == true) {
+                    for (let offset of this.insPixelIndex[ins.maskValue]) {       
+                        newImageData.data[offset + 0] = 255;
+                        newImageData.data[offset + 1] = 255;
+                        newImageData.data[offset + 2] = 255;
+
+                        imageData.data[offset + 0] = sourceImageData.data[offset + 0];
+                        imageData.data[offset + 1] = sourceImageData.data[offset + 1];
+                        imageData.data[offset + 2] = sourceImageData.data[offset + 2];
+                    }
+                }
+            }).bind(this));
+        }
+        else {
+            imageData = sourceImageData;
+        }
+
+        this.raster.setImageData(imageData, 0, 0);
+
+        if (this.isCutoutFgr) {// this.printAnno();
+            ctx.putImageData(imageData, 0, 0);
+            let img = this.filterCanvas.toDataURL();
+            Meteor.call("saveScribble", img, this.props.imageUrl, "image", (err) => {});
+
+            ctx.putImageData(newImageData, 0, 0);
+            img = this.filterCanvas.toDataURL();
+            Meteor.call("saveScribble", img, this.props.imageUrl, "mask", (err) => {});
+        }
+    }
+
     saveScribble(s, t) {
         const image = $("#sourceImage").get(0);
         let width = this.scribbleMask.width;
@@ -2785,18 +2850,19 @@ export default class SseEditor2d extends React.Component {
         this.superPixel.opacity = 0;
     }
 
-    _updateAnnotation(pixels, index=null) {
-        if (this.isInstance !== null && this.isInstance && index == 0) {
-            return true;
-        }
+    // _updateAnnotation(pixels, index=null) {
+    _updateAnnotation(pixels, isRight=false) {
+        // if (this.isInstance !== null && this.isInstance && index == 0) {
+        //     return true;
+        // }
         // labels = (typeof labels === "object") ? labels : this._fillArray(new Int32Array(pixels.length), labels);
         let labels = this._fillArray(new Int32Array(pixels.length), this.activeClassIndex);
-        let updates = this._getDifferentialUpdates(pixels, labels);
+        let updates = this._getDifferentialUpdates(pixels, isRight);
         if (updates.pixels.length === 0) {
             return true;
         }
         this._updateHistory(updates);
-        this._fillPixels(updates.pixels, updates.next, updates.insNext);
+        this._fillPixels(updates.pixels, updates.next, updates.insNext, isRight);
     }
 
     _fillArray(array, value) {
@@ -2816,9 +2882,12 @@ export default class SseEditor2d extends React.Component {
         }
     }
 
-    _getDifferentialUpdates(pixels) {
+    _getDifferentialUpdates(pixels, isRight=false) {
         let curLabel = parseInt(this.activeClassIndex);
         let curIns = parseInt(this.activeInstanceIndex);
+        console.log(curIns, typeof curIns);
+        console.log(this.activeInstanceIndex, typeof this.activeInstanceIndex);
+        console.log(this.activeInstanceIndex == curIns);
 
         let aData = this._getAnnotationData();
         let iData = this._getInstanceMaskData().data;
@@ -2835,7 +2904,10 @@ export default class SseEditor2d extends React.Component {
                 (iData[offset + 1] << 8) | 
                 (iData[offset + 2] << 16);
 
-            if (label !== curLabel || insLabel !== curIns) {
+            let flagLeft = label !== curLabel || insLabel !== curIns;
+            let flagRight = label == curLabel || insLabel == curIns;
+
+            if ((flagLeft && !isRight) || (flagRight && isRight)) {
                 updates.pixels.push(offset);
                 updates.prev.push(label);
                 updates.next.push(curLabel);
@@ -2918,9 +2990,10 @@ export default class SseEditor2d extends React.Component {
         this.visualization.setImageData(vData, 0, 0);
     }
 
-    _fillPixels(pixels, labels, insLabels) {
+    _fillPixels(pixels, labels, insLabels, isRight=false) {
         // console.log("current label index:", labels[0]);
-        // console.log("number to change:", pixels.length);
+        console.log("number to change:", pixels.length);
+        console.log(isRight);
         let i;
         let annotationData = this._getAnnotationData();
         let visualizationData = this._getVisualizationData();
@@ -2929,13 +3002,16 @@ export default class SseEditor2d extends React.Component {
         for (i = 0; i < pixels.length; i++) {
             let offset = pixels[i];
             let index = labels[i];
-            let ins = insLabels[i]
+            let ins = insLabels[i];
             // console.log(typeof(this.activeClassIndex), typeof(index));
             // let color = this.activeSoc.colorForIndexAsRGBArray(index);
             // color change with instance status, not annotation
-            let color = ins == this.activeInstanceIndex ? 
+            let color = ins == parseInt(this.activeInstanceIndex) ? 
                 this.selectInstanceColor :
                 this.props.instanceList.mask2ins.get(ins).colorList;
+            if (isRight) {
+                color = [255, 255, 255];
+            }
 
             annotationData.data[offset + 0] = index;
             annotationData.data[offset + 1] = index;
@@ -2947,16 +3023,21 @@ export default class SseEditor2d extends React.Component {
             visualizationData.data[offset + 2] = color[2];// * 255;
             visualizationData.data[offset + 3] = 255;
 
-            let prev = instanceData.data[offset + 0] |
-                (instanceData.data[offset + 1] << 8) |
-                (instanceData.data[offset + 2] << 16);
-            this.insPixelIndex[prev].delete(offset);
-            this.insPixelIndex[ins].add(offset);
-
-            instanceData.data[offset + 0] = ins & 255;
-            instanceData.data[offset + 1] = (ins >>> 8) & 255;
-            instanceData.data[offset + 2] = (ins >>> 16) & 255;
-            instanceData.data[offset + 3] = 255;
+            // let prev = instanceData.data[offset + 0] |
+            //     (instanceData.data[offset + 1] << 8) |
+            //     (instanceData.data[offset + 2] << 16);
+            // this.insPixelIndex[prev].delete(offset);
+            if (isRight) {
+                this.insPixelIndex[ins].delete(offset);
+            }
+            else {
+                this.insPixelIndex[ins].add(offset);
+                
+                instanceData.data[offset + 0] = ins & 255;
+                instanceData.data[offset + 1] = (ins >>> 8) & 255;
+                instanceData.data[offset + 2] = (ins >>> 16) & 255;
+                instanceData.data[offset + 3] = 255;
+            }
         }
 
         this.annotation.setImageData(annotationData, 0, 0);
