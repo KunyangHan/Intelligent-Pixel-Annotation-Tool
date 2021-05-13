@@ -43,11 +43,45 @@ export default class SetOfInstance {
         }
     }
 
+    changeClass(mask, cls) {
+        let ins = this.mask2ins.get(mask);
+        this.cls2ins.get(ins.class).delete(ins);
+        ins.class = cls.classIndex;
+        ins.className = cls.label;
+        if (this.cls2ins.has(cls.classIndex)) {
+            this.cls2ins.get(ins.class).add(ins);
+        }
+        else {
+            this.cls2ins.set(cls.classIndex, new Set([ins]));
+        }
+    }
+
     changeForeground(mask, isF) {
         let ins = this.mask2ins.get(mask);
         ins.isForeground = isF;
         ins.colorList = this.getInsColorList(isF);
         ins.colorStr = this.getInsColorStr(isF);
+    }
+
+    changeMask(idx, maskIdx, offset) {
+        let ins = this.mask2ins.get(idx);
+
+        let curIdx = ins.activateMaskIdx;
+        ins.maskList.idx2Mask.get(curIdx).offset = offset[0];
+
+        ins.activateMaskIdx = maskIdx;
+        ins.maskList.idx2Mask.get(maskIdx).offset = offset[1];
+    }
+
+    newMask(idx, mask, offset) {
+        let ins = this.mask2ins.get(idx);
+        let curIdx = ins.activateMaskIdx;
+        ins.maskList.idx2Mask.get(curIdx).offset = offset;
+
+        let newIdx = ins.maskList.curMaxIdx;
+        ins.maskList.addMask([mask]);
+
+        return ins.maskList.idx2Mask.get(newIdx);
     }
 
     genInsColorDic() {

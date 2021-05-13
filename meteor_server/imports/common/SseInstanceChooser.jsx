@@ -29,6 +29,10 @@ export default class SseInstanceChooser extends SseToolbar {
         this.onMsg("instanceSelection", (arg) => {
             this.setState({activeInstanceIndex: arg.instance.maskValue});
         });
+
+        this.onMsg("instanceNewSelection", ({instance}) => {
+            this.setState({activeInstanceIndex: arg.instance.maskValue});
+        });
     }
 
     displayAll() {
@@ -70,8 +74,14 @@ export default class SseInstanceChooser extends SseToolbar {
                             }}
                         />
                         <Button className="class-button"
-                                onClick={() => {
+                                onClick={(e) => {
                                     this.sendMsg('instanceSelection', {instance: objDesc});
+                                }}
+                                onDoubleClick={(event) => {
+                                    // event.preventDefault();
+                                    // console.log("right click ?");
+                                    this.sendMsg('instanceSelection', {instance: objDesc});
+                                    this.sendMsg('changeClass', {instance: objDesc});
                                 }}
                                 onMouseEnter={() => {
                                     if (typeof objDesc.isForeground == "boolean"){
@@ -85,7 +95,6 @@ export default class SseInstanceChooser extends SseToolbar {
                                 }}
                                 style={
                                     {
-
                                         "width": "100%",
                                         "minHeight": "40px",
                                         "margin": "1px",
@@ -101,6 +110,7 @@ export default class SseInstanceChooser extends SseToolbar {
                         </Button>
                     </div>
                 })}
+                <Button onClick={() => this.sendMsg("NewInstance")}>New Instance</Button>
             </div>
         );
     }

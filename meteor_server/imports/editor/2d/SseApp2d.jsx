@@ -4,6 +4,7 @@ import React from 'react';
 import SseClassChooser from "../../common/SseClassChooser";
 import SseInstanceChooser from "../../common/SseInstanceChooser";
 import SseRecommendChooser from "../../common/SseRecommendChooser";
+import SseInsMaskChooser from "../../common/SseInsMaskChooser";
 
 import SseEditor2d from "./SseEditor2d";
 import SseSliderPanel from "./SseSliderPanel";
@@ -45,6 +46,8 @@ export default class SseApp2d extends React.Component {
         let rcmList = new SetOfRecommend();
         this.state.recommendList = rcmList;
 
+        this.state.curInstance = {maskList : []};
+
         console.log(this.state.instanceList);
         console.log(this.state.recommendList);
         
@@ -71,21 +74,17 @@ export default class SseApp2d extends React.Component {
     }
 
     messages() {
-        this.onMsg("addInstanceList", (arg) => {
-            let insList = this.state.instanceList;
-            insList.addIns(arg.list);
-            console.log(insList.insList);
-
-            this.setState({instanceList : insList});
+        this.onMsg("editor-ready", (arg) => {
+            this.sendMsg("active-soc", {value: this.classesSets[0]});
         });
-
+        
         this.onMsg("genRecommend", (arg) => {
             let rcmList = this.state.recommendList;
             rcmList.addRcm(arg.list);
-
+            
             this.setState({recommendList : rcmList});
         });
-
+        
         this.onMsg("editRecommend", (arg) => {
             let insList = this.state.instanceList;
             let rcm = this.state.recommendList.idx2Rcm.get(arg.rcmIdx);
@@ -93,14 +92,64 @@ export default class SseApp2d extends React.Component {
             for (let i = 0; i < rcm.foreground.length; i++) {
                 insList.changeForeground(rcm.foreground[i], true);
             }
-
+            
             this.setState({isRecommend : false, instanceList : insList});
             // this.sendMsg("componentChange");
+        });
+
+        this.onMsg("addInstanceList", (arg) => {
+            let insList = this.state.instanceList;
+            insList.addIns(arg.list);
+            console.log(insList.insList);
+
+            if (arg.isInit) {
+                this.setState({curInstance : insList.mask2ins.get(0)});
+            }
+            else {
+                let ins = insList.mask2ins.get(arg.list[0].maskValue);
+                console.log(ins);
+                this.sendMsg("instanceSelection", {instance: ins});
+            }
+
+            this.setState({instanceList : insList});
         });
 
         this.onMsg("instanceCheckbox", (arg) => {
             let insList = this.state.instanceList;
             insList.changeForeground(arg.ins, arg.isF);
+
+            this.setState({instanceList : insList});
+        });
+
+        this.onMsg("instanceSelection", (arg) => {
+            // this.setState({curInstanceIndex : arg.instance.maskValue});
+            this.setState({curInstance : arg.instance});
+        })
+
+        this.onMsg("classSelection", (arg) => {
+            let insList = this.state.instanceList;
+            insList.changeClass(this.state.curInstance.maskValue, arg.descriptor);
+
+            this.setState({instanceList : insList});
+        });
+
+        this.onMsg("changeClass", (arg) => {
+            let cc = !this.state.changeCls;
+
+            this.setState({curInstance : arg.instance, changeCls : cc});
+        });
+
+        this.onMsg("newInsMaskOffset", (arg) => {
+            let insList = this.state.instanceList;
+            let mask = insList.newMask(this.state.curInstance.maskValue, arg.mask, arg.offset);
+
+            this.setState({instanceList : insList});
+            this.sendMsg('insMaskSelection', {mask: mask});
+        });
+
+        this.onMsg("insMaskSelectionOffset", (arg) => {
+            let insList = this.state.instanceList;
+            insList.changeMask(this.state.curInstance.maskValue, arg.mask.idx, arg.offset);
 
             this.setState({instanceList : insList});
         });
@@ -151,7 +200,12 @@ export default class SseApp2d extends React.Component {
                             <div className="hflex grow box2 relative h0">
                                 {rcmStage ? <SseRecommendChooser recommendList={this.state.recommendList}/> : null}
                                 {editStage ? <SseInstanceChooser instanceList={this.state.instanceList}/> : null}
-                                {editStage && this.state.changeCls ? <SseClassChooser classesSets={this.classesSets}/> : null}
+                                {editStage && this.state.changeCls 
+                                    ? <SseClassChooser 
+                                    classesSets={this.classesSets}
+                                    classIndex={this.state.curInstance}/> 
+                                    : null}
+                                {editStage ? <SseInsMaskChooser instance={this.state.curInstance}/> : null}
                                 <div id="canvasContainer" className="grow relative">
                                     {ready
                                         ? <SseEditor2d
@@ -173,7 +227,7 @@ export default class SseApp2d extends React.Component {
                                     currentTool={this.state.currentTool}/> 
                                     : null}
                             </div>
-                            <SseBottomBar/>
+                            {/* <SseBottomBar/> */}
                         </div>
                         <SseSnackbar/>
                         <SseConfirmationDialog

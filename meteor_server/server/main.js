@@ -6,6 +6,7 @@ import {basename, extname, join} from "path";
 import url from "url";
 import ColorScheme from "color-scheme";
 import config from "./config";
+import color from '@material-ui/core/colors/amber';
 
 let {classes} = config;
 let callback = (err) => {

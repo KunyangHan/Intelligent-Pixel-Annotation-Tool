@@ -4,6 +4,7 @@
 @textColor: white;
 @class-chooser-width: 230px;
 @instance-chooser-width: 150px;
+@insMask-chooser-width: 150px;
 // @class-chooser-width: 190px;
 // @instance-chooser-width: 70px;
 @recommend-chooser-width: 230px;
@@ -388,6 +389,32 @@ button {
 .sse-instance-chooser {
 
   width: @instance-chooser-width;
+
+  sup {
+    line-height: 0;
+    position: relative;
+    margin-top: -4px;
+  }
+
+  .class-button {
+    position: relative;
+    > span {
+      width: 100%;
+      justify-content: left;
+    }
+  }
+
+  svg.chevron {
+    margin: 0 -6px;
+  }
+  svg:not(.chevron) {
+    margin-right: 2px;
+  }
+}
+
+.sse-insMask-chooser {
+
+  width: @insMask-chooser-width;
 
   sup {
     line-height: 0;

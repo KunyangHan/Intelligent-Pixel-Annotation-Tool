@@ -17,10 +17,11 @@ export default class SseClassChooser extends SseToolbar {
         this.classesSets.map(cset => {
             this.classesSetByName.set(cset.name, cset)
         });
+        console.log("class chooser construct", props.classIndex);
         this.state = {
             counters: {},
             soc: this.classesSets[0],
-            activeClassIndex: 0
+            activeClassIndex: props.classIndex.class
         };
     }
 
@@ -33,6 +34,10 @@ export default class SseClassChooser extends SseToolbar {
     }
 
     messages() {
+        this.onMsg("instanceSelection", (arg) => {
+            this.setState({activeClassIndex : arg.instance.class});
+        });
+
         this.onMsg("classSelection", (arg) => {
             this.setState({activeClassIndex: arg.descriptor.classIndex});
         });
@@ -184,13 +189,12 @@ export default class SseClassChooser extends SseToolbar {
                                 }}
                                 style={
                                     {
-
                                         "width": "100%",
                                         "minHeight": "20px",
                                         "margin": "1px",
                                         "backgroundColor": objDesc.color,
                                         "color": SseGlobals.computeTextColor(objDesc.color),
-                                        "border": isSelected ? "solid 1px #ffe100" : "solid 1px black",
+                                        "border": isSelected ? "solid 3px #ffe100" : "solid 1px black",
                                         "padding": "0 3px"
                                     }}>
                             <div
