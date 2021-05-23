@@ -11,6 +11,9 @@
 @ease-out-quint      : cubic-bezier(0.23, 1, 0.32, 1);
 @ease-in-quint       : cubic-bezier(0.755, 0.05, 0.855, 0.06);
 
+@railBgrColor: #696969;
+@trackBgrColor: #857aff;
+
 .borderBox() {
   box-sizing: border-box;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0); //  remove tap highlight color for mobile safari
@@ -25,7 +28,7 @@
   position: relative;
   height: 14px;
   padding: 5px 0;
-  width: 100%;
+  width: 90%;
   border-radius: @border-radius-base;
   touch-action: none;
   .borderBox();
@@ -33,7 +36,7 @@
   &-rail {
     position: absolute;
     width: 100%;
-    background-color: #e9e9e9;
+    background-color: @railBgrColor;
     height: 4px;
     border-radius: @border-radius-base;
   }
@@ -43,7 +46,7 @@
     left: 0;
     height: 4px;
     border-radius: @border-radius-base;
-    background-color: tint(@primary-color, 60%);
+    background-color: @trackBgrColor;
   }
 
   &-handle {
@@ -56,7 +59,8 @@
     cursor: -webkit-grab;
     cursor: grab;
     border-radius: 50%;
-    border: solid 2px tint(@primary-color, 50%);
+    // border: solid 2px tint(@primary-color, 50%);
+    border: 0;
     background-color: #fff;
     touch-action: pan-x;
 

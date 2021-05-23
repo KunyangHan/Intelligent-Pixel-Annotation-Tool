@@ -1,7 +1,8 @@
 import React from 'react';
 
 
-import SseClassChooser from "../../common/SseClassChooser";
+import SseInsClassChooser from "../../common/SseInsClassChooser";
+import SseParsingClassChooser from "../../common/SseParsingClassChooser";
 import SseInstanceChooser from "../../common/SseInstanceChooser";
 import SseRecommendChooser from "../../common/SseRecommendChooser";
 import SseInsMaskChooser from "../../common/SseInsMaskChooser";
@@ -41,13 +42,14 @@ export default class SseApp2d extends React.Component {
         this.state.changeCls = false;
         this.state.isRecommend = true;
         this.state.instanceReady = false;
-
+        
         let insList = new SetOfInstance();
         this.state.instanceList = insList;
         let rcmList = new SetOfRecommend();
         this.state.recommendList = rcmList;
-
-        this.state.curInstance = {maskList : []};
+        
+        this.state.curInstance = {maskList : [], class : 0};
+        this.state.curMask = {};
 
         console.log(this.state.instanceList);
         console.log(this.state.recommendList);
@@ -128,17 +130,18 @@ export default class SseApp2d extends React.Component {
 
         this.onMsg("instanceSelection", (arg) => {
             // this.setState({curInstanceIndex : arg.instance.maskValue});
-            this.setState({curInstance : arg.instance});
+            let mask = arg.instance.maskList.idx2Mask.get(arg.instance.activateMaskIdx);
+            this.setState({curInstance : arg.instance, curMask : mask});
         })
 
-        this.onMsg("classSelection", (arg) => {
+        this.onMsg("insClassSelection", (arg) => {
             let insList = this.state.instanceList;
             insList.changeClass(this.state.curInstance.maskValue, arg.descriptor);
 
             this.setState({instanceList : insList});
         });
 
-        this.onMsg("changeClass", (arg) => {
+        this.onMsg("changeInsClass", (arg) => {
             let cc = !this.state.changeCls;
 
             this.setState({curInstance : arg.instance, changeCls : cc});
@@ -154,9 +157,9 @@ export default class SseApp2d extends React.Component {
 
         this.onMsg("insMaskSelectionOffset", (arg) => {
             let insList = this.state.instanceList;
-            insList.changeMask(this.state.curInstance.maskValue, arg.mask.idx, arg.offset);
+            insList.changeMask(this.state.curInstance.maskValue, arg.mask.idx, arg.offset, arg.update);
 
-            this.setState({instanceList : insList});
+            this.setState({instanceList : insList, curMask : arg.mask});
         });
     }
 
@@ -194,6 +197,7 @@ export default class SseApp2d extends React.Component {
         const ready = this.state.imageReady && this.state.classesReady;
         const rcmStage = ready && this.state.isRecommend;
         const editStage = ready && !this.state.isRecommend;
+        const isParsing = this.state.curMask.isParsing != undefined && this.state.curMask.isParsing;
         return (
             <div className="w100 h100">
                 <MuiThemeProvider theme={new SseTheme().theme}>
@@ -210,11 +214,15 @@ export default class SseApp2d extends React.Component {
                                     : null}
                                 {editStage ? <SseInstanceChooser instanceList={this.state.instanceList}/> : null}
                                 {editStage && this.state.changeCls 
-                                    ? <SseClassChooser 
+                                    ? <SseInsClassChooser 
                                     classesSets={this.classesSets}
                                     classIndex={this.state.curInstance}/> 
                                     : null}
                                 {editStage ? <SseInsMaskChooser instance={this.state.curInstance}/> : null}
+                                {editStage && isParsing 
+                                    ? <SseParsingClassChooser 
+                                        classesSets={this.classesSets}/> 
+                                    : null}
                                 <div id="canvasContainer" className="grow relative">
                                     {ready
                                         ? <SseEditor2d

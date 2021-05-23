@@ -79,7 +79,7 @@ export default class SseAiIOGTool extends SseTool {
         
         this.reset();
         
-        this.editor.loadMask();
+        this.editor.loadMask(this.editor.loadMaskFunc);
         // this.editor.set2Superpixel();
     }
 

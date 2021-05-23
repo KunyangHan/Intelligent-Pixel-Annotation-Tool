@@ -56,10 +56,12 @@ export default class SseRecommendChooser extends SseToolbar {
         const smallIconSelected = {width: "25px", height: "25px", color: "red"};
         return (
             <div className="sse-recommend-chooser vflex scroller"
-                 style={{"backgroundColor": "#393536", "padding": "5px 5px 0 0"}}>
+                 style={{"padding": "5px 5px 0 0"}}>
                 {this.props.instanceReady 
                     ? (this.props.recommendList.rcmList.map((objDesc, idx) => {
                         const isSelected = objDesc.idx == this.state.activeRecommendIndex;
+                        // const buttonColor = "#F8F8FF";
+                        const buttonColor = "#3F3795";
                         return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}>
                             <Button className="class-button"
                                 onClick={() => {
@@ -70,9 +72,9 @@ export default class SseRecommendChooser extends SseToolbar {
                                         "width": "100%",
                                         "minHeight": "40px",
                                         "margin": "1px",
-                                        "backgroundColor": "#F8F8FF",
-                                        "color": SseGlobals.computeTextColor("#F8F8FF"),
-                                        "border": isSelected ? "solid 3px #ffe100" : "solid 1px black",
+                                        "backgroundColor": buttonColor,
+                                        "color": SseGlobals.computeTextColor(buttonColor),
+                                        "border": isSelected ? "solid 1px #ffffff" : "solid 1px black",
                                         "padding": "0 3px"
                                     }}>
                                 <div

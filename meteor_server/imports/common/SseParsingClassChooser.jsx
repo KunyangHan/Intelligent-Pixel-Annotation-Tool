@@ -7,7 +7,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-export default class SseClassChooser extends SseToolbar {
+export default class SseParsingClassChooser extends SseToolbar {
 
     constructor(props) {
         super();
@@ -20,8 +20,8 @@ export default class SseClassChooser extends SseToolbar {
         console.log("class chooser construct", props.classIndex);
         this.state = {
             counters: {},
-            soc: this.classesSets[0],
-            activeClassIndex: props.classIndex.class
+            soc: this.classesSetByName.get("HumanParsing"),
+            activeClassIndex: 0
         };
     }
 
@@ -34,21 +34,8 @@ export default class SseClassChooser extends SseToolbar {
     }
 
     messages() {
-        this.onMsg("instanceSelection", (arg) => {
-            this.setState({activeClassIndex : arg.instance.class});
-        });
-
-        this.onMsg("classSelection", (arg) => {
+        this.onMsg("parsingClassSelection", (arg) => {
             this.setState({activeClassIndex: arg.descriptor.classIndex});
-        });
-
-        this.onMsg("classIndex-select", (arg) => {
-            this.setState({activeClassIndex: arg.value});
-        });
-
-        this.onMsg("class-instance-count", arg => {
-            this.pendingState.counters[arg.classIndex] = arg.count;
-            this.invalidate();
         });
 
         this.onMsg("currentSample", (arg) => {
@@ -180,23 +167,24 @@ export default class SseClassChooser extends SseToolbar {
                  style={{"padding": "5px 5px 0 0"}}>
                 {this.state.soc.descriptors.map((objDesc, idx) => {
                     const isSelected = objDesc.classIndex == this.state.activeClassIndex;
-                    // const buttonColor = objDesc.color;
-                    const buttonColor = "#3F3795";
-                    return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}>
+                    const buttonColor = objDesc.color;
+                    // const buttonColor = "#3F3795";
+                    return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}
+                        style={{"height" : "30px"}}>
                         <ChevronRight className="chevron" color={isSelected ? "primary" : "disabled"}/>
                         <Button className="class-button"
                                 onDoubleClick={() => this.sendMsg("class-multi-select", {name: objDesc.label})}
                                 onClick={() => {
-                                    this.sendMsg('classSelection', {descriptor: objDesc});
+                                    this.sendMsg('parsingClassSelection', {descriptor: objDesc});
                                 }}
                                 style={
                                     {
                                         "width": "100%",
-                                        "minHeight": "20px",
+                                        "minHeight": "26px",
                                         "margin": "1px",
                                         "backgroundColor": buttonColor,
                                         "color": SseGlobals.computeTextColor(buttonColor),
-                                        "border": isSelected ? "solid 1px #ffffff" : "solid 1px black",
+                                        "border": isSelected ? "solid 2px #ffffff" : "solid 1px black",
                                         "padding": "0 3px"
                                     }}>
                             <div
@@ -205,20 +193,6 @@ export default class SseClassChooser extends SseToolbar {
                             </div>
                             <sup>{this.state.counters[objDesc.classIndex] > 0 ? this.state.counters[objDesc.classIndex] : ""}</sup>
                         </Button>
-                        {this.props.mode == "3d" ?
-                            <div className="hflex">
-                                <IconButton
-                                    onClick={() => this.muteOrSolo("mute", objDesc, idx)}
-                                    style={this.state["mute" + idx] ? smallIconSelected : smallIconStyle}>
-                                    <EyeOff/>
-                                </IconButton>
-                                <IconButton
-                                    onClick={() => this.muteOrSolo("solo", objDesc, idx)}
-                                    style={this.state["solo" + idx] ? smallIconSelected : smallIconStyle}>
-                                    <Eye/>
-                                </IconButton>
-
-                            </div> : null}
                     </div>
                 })}
                 <Button onClick={() => this.initSetChange()}>Classes Sets</Button>

@@ -34,14 +34,15 @@ export default class SseToolbar2d extends SseToolbar {
 
     componentDidMount() {
         super.componentDidMount();
-        this.addCommand("undoCommand", "Undo", false, null, "undo", Undo, "disabled", "Undo");
-        this.addCommand("redoCommand", "Redo", false, null, "redo", Redo, "disabled", "Redo");
-        this.addCommand("pointerCommand", "Manipulation Tool", 1, "Alt", "pointer", CursorDefaultOutline, null);
-        this.addCommand("cutCommand", "Cut/Expand Tool", 1, "C", "cut", ContentCut, "disabled");
-        this.addCommand("rectangleCommand", "Rectangle Tool", 1, "R", "rectangle", CropLandscape);
-        this.addCommand("polygonCommand", "Polygon Tool", 1, "P", "polygon", VectorPolygon);
-        this.addCommand("magicCommand", "Magic Tool", 1, "A", "flood", AutoFix);
-        this.addCommand("instanceCommand", "Instance Mode", false, null, "instancemode", AutoFix);
+        // this.addCommand("undoCommand", "Undo", false, null, "undo", Undo, "disabled", "Undo");
+        // this.addCommand("redoCommand", "Redo", false, null, "redo", Redo, "disabled", "Redo");
+        // this.addCommand("pointerCommand", "Manipulation Tool", 1, "Alt", "pointer", CursorDefaultOutline, null);
+        this.addCommand("pointerCommand", "Pointer", 1, "Alt", "pointer", CursorDefaultOutline, null, "Pointer");
+        // this.addCommand("cutCommand", "Cut/Expand Tool", 1, "C", "cut", ContentCut, "disabled");
+        // this.addCommand("rectangleCommand", "Rectangle Tool", 1, "R", "rectangle", CropLandscape);
+        // this.addCommand("polygonCommand", "Polygon Tool", 1, "P", "polygon", VectorPolygon);
+        // this.addCommand("magicCommand", "Magic Tool", 1, "A", "flood", AutoFix);
+        // this.addCommand("instanceCommand", "Instance Mode", false, null, "instancemode", AutoFix);
         this.addCommand("brushCommand", "Brush Mode", 1, null, "brushmode", Brush, null, "Brush");
         this.addCommand("superpixelCommand", "Superpixel mode", 1, null, "superpixel", ViewModule, null, "Superpixel");
         this.addCommand("finerCommand", "Superpixel Finer", false, null, "finer", Plus, null, "Finer");
@@ -51,14 +52,14 @@ export default class SseToolbar2d extends SseToolbar {
         this.addCommand("boundaryCommand", "Boundary On/Off", false, null, "boundaryonoff", Eraser, null, "Boundary");
         this.addCommand("iogPCommand", "IOG Click", 1, null, "iogpoint", mdiAlphaCIcon, null, "IOG_Click");
         this.addCommand("iogSCommand", "IOG Scribble", 1, null, "iogscribble", mdiAlphaSIcon, null, "IOG_Scribble");
-        this.addCommand("deleteCommand", "Delete Selection", false, "Del", "delete", DeleteForever, "disabled");
-        this.addCommand("downCommand", "Send Backward", false, "Down", "moveback", ArrangeSendBackward, "disabled");
-        this.addCommand("upCommand", "Bring Forward", false, "Up", "movefront", ArrangeBringForward, "disabled");
-        this.addCommand("mergeCommand", "Merge Polygons", false, "M", "merge", CallMerge, "disabled");
-        this.addCommand("followCommand", "Follow Polygon Outline", false, "F", "follow", Looks, "disabled");
-        this.addCommand("enterCommand", "Create Polygon", false, "Enter", "closepolygon", CheckOutline, "disabled");
-        this.addCommand("jsonCommand", "Show JSON Output", false, "J", "openJsonView", Json);
-        this.addCommand("downloadCommand", "Download", false, "D", "download", Download);
+        // this.addCommand("deleteCommand", "Delete Selection", false, "Del", "delete", DeleteForever, "disabled");
+        // this.addCommand("downCommand", "Send Backward", false, "Down", "moveback", ArrangeSendBackward, "disabled");
+        // this.addCommand("upCommand", "Bring Forward", false, "Up", "movefront", ArrangeBringForward, "disabled");
+        // this.addCommand("mergeCommand", "Merge Polygons", false, "M", "merge", CallMerge, "disabled");
+        // this.addCommand("followCommand", "Follow Polygon Outline", false, "F", "follow", Looks, "disabled");
+        // this.addCommand("enterCommand", "Create Polygon", false, "Enter", "closepolygon", CheckOutline, "disabled");
+        // this.addCommand("jsonCommand", "Show JSON Output", false, "J", "openJsonView", Json);
+        // this.addCommand("downloadCommand", "Download", false, "D", "download", Download);
         this.sendMsg("pointer");
     }
 
@@ -67,10 +68,10 @@ export default class SseToolbar2d extends SseToolbar {
             <div className="hflex flex-justify-content-space-around sse-toolbar no-shrink">
 
                 <SseBranding/>
-                <div className="group">
+                {/* <div className="group">
                     {this.renderCommand("undoCommand")}
                     {this.renderCommand("redoCommand")}
-                </div>
+                </div> */}
                 {/* <div className="group">
                     {this.renderCommand("pointerCommand")}
                     {this.renderCommand("cutCommand")}
@@ -80,6 +81,9 @@ export default class SseToolbar2d extends SseToolbar {
                     {this.renderCommand("polygonCommand")}
                     {this.renderCommand("magicCommand")}
                 </div> */}
+                <div className="group">
+                    {this.renderCommand("pointerCommand")}
+                </div>
                 <div className="group">
                     {this.renderCommand("brushCommand")}
                 </div>

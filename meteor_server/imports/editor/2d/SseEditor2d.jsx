@@ -18,11 +18,12 @@ import SseSuperPixelTool from "./tools/SseSuperPixelTool";
 import SseAiTool from "./tools/SseAiTool";
 import SseAiIOGTool from "./tools/SseAiIOGTool";
 import SseBrushTool from "./tools/SseBrushTool";
+import SseDoNothingTool from "./tools/SseDoNothingTool";
 import segmentation from './segmentation';
 import ColorScheme from "color-scheme";
 import SetOfInsMask from "../../common/SseSetOfInsMask";
 // var segmentation = require('./segmentation');
-import $ from "jquery";
+import $, { isPlainObject } from "jquery";
 
 // const https = require('https');
 
@@ -54,6 +55,7 @@ export default class SseEditor2d extends React.Component {
 
         this.brushSize = 2;
         this.selectInstanceColor = [177, 249, 153];
+        this.activeInstanceIndex = 0;
 
         this.undoRedo = new SseUndoRedo2d(this.cloningDataFunction);
         this.pointIndicators = new Set();
@@ -985,31 +987,44 @@ export default class SseEditor2d extends React.Component {
                 }
             }
         });
-        
-        this.onMsg("instanceReady", () => this.visualization.visible = true);
 
-        this.onMsg("changeClass", (arg) => {
+        this.onMsg("parsingClassSelection", ({descriptor}) => {
+            const classIndex = descriptor.classIndex;
+
+            this.activeClassIndex = classIndex;
+            this.activeClassColor = this.colorStr2List(descriptor.color);
+        });
+
+        this.onMsg("instanceReady", () => this.initInstance());
+
+        this.onMsg("changeInsClass", (arg) => {
             setTimeout(() => {
                 this.resizeCanvas();
             }, 200);
         });
 
-        this.onMsg("NewInstance", () => this.iog_point.activate());
+        this.onMsg("NewInstance", () => {
+            this.loadMaskFunc = this.addNewInstance.bind(this);
+            this.iog_point.activate();
+        });
 
         this.onMsg("instanceSelection", ({instance}) => {
             if (this.activeInstanceIndex != undefined) {
-                this.instanceDeHighlight(this.activeInstanceIndex, true);
+                this.instanceDeHighlight({maskValue : this.activeInstanceIndex}, true);
             }
-            this.instanceHighlight(instance.maskValue, true);
             this.activeInstanceIndex = instance.maskValue;
+            this.instanceHighlight(instance, true);
+            setTimeout(() => {
+                this.resizeCanvas();
+            }, 100);
         });
 
         this.onMsg("instanceHighlight", ({instance}) => {
-            this.instanceHighlight(instance.maskValue);
+            this.instanceHighlight(instance);
         });
 
         this.onMsg("instanceDeHighlight", ({instance}) => {
-            this.instanceDeHighlight(instance.maskValue);
+            this.instanceDeHighlight(instance);
         });
 
         this.onMsg("recommendSelection", ({recommend}) => {
@@ -1021,7 +1036,7 @@ export default class SseEditor2d extends React.Component {
             this.initInstanceVisualBgr();
             setTimeout(() => {
                 this.resizeCanvas();
-            }, 500);
+            }, 100);
         });
 
         this.onMsg("instanceCheckbox", (arg) => {
@@ -1032,10 +1047,17 @@ export default class SseEditor2d extends React.Component {
 
         this.onMsg("insMaskSelection", (arg) => {
             this.insMaskSelection(arg.mask);
+            setTimeout(() => {
+                this.resizeCanvas();
+            }, 100);
         });
 
         this.onMsg("newInsMask", (arg) => {
-            this.newInsMask(arg.maskIdx);
+            this.newInsMaskCopy(arg.maskIdx);
+        });
+
+        this.onMsg("humanParsing", (arg) => {
+            this.newInsMaskParsing(arg.maskIdx);
         });
 
         this.onMsg("cutoutForeground", () => this.cutoutForeground());
@@ -1121,7 +1143,10 @@ export default class SseEditor2d extends React.Component {
         this.onMsg("merge", () => this.mergePath());
         this.onMsg("follow", () => this.followPath());
 
-        this.onMsg("pointer", () => this.pointerTool.activate());
+        this.onMsg("pointer", () => {
+            this.clearAux();
+            this.doNothingTool.activate();
+        });
         this.onMsg("cut", () => this.cutTool.activate());
         this.onMsg("polygon", () => this.polygonTool.activate());
         this.onMsg("rectangle", () => this.rectangleTool.activate());
@@ -1288,6 +1313,7 @@ export default class SseEditor2d extends React.Component {
         this.floodTool = new SseFloodTool(this);
         this.superpixelTool = new SseSuperPixelTool(this);
         this.brushTool = new SseBrushTool(this);
+        this.doNothingTool = new SseDoNothingTool(this);
         this.aiTool = new SseAiTool(this);
         this.iog_point = new SseAiIOGTool(this);
         $(window).on('resize', this.resizeCanvas.bind(this));
@@ -1337,7 +1363,7 @@ export default class SseEditor2d extends React.Component {
         // this.superpixelTool.activate();
         // this.mainLayer.visible = false;
         // this.boundary.visible = true;
-        this.visualization.visible = true;
+        this.visualization.visible = false;
         this.annotation.visible = false;
         this.resetSuperpixels({});
     }
@@ -1382,7 +1408,12 @@ export default class SseEditor2d extends React.Component {
             // this._updateBoundaryLayer();
 
             ctx.putImageData(oriImgData, 0, 0);
-            this.visualization.visible = false;
+            this.visualization.visible = true;
+        }
+        else {
+            setTimeout(() => {
+                this.initInstance();
+            }, 1000);
         }
     }
 
@@ -1615,10 +1646,10 @@ export default class SseEditor2d extends React.Component {
         return rcm;
     }
 
-    addNewInstance(pixel) {
+    addNewInstance(maskData, threshPixels, nonZeroPixels) {
         let curLastInstance = this.instanceNum;
         this.instanceNum += 1;
-        let offset = new Set(pixel);
+        let offset = new Set(threshPixels);
 
         let maskList = new SetOfInsMask([{
             offsets : offset,
@@ -1694,7 +1725,7 @@ export default class SseEditor2d extends React.Component {
         return insList;
     }
 
-    newInsMask(maskIdx) {
+    newInsMaskCopy(maskIdx) {
         let ins = this.props.instanceList.mask2ins.get(this.activeInstanceIndex);
         let offset = this.insPixelIndex[this.activeInstanceIndex];
         let offsetCopy = new Set(offset);
@@ -1710,8 +1741,126 @@ export default class SseEditor2d extends React.Component {
             newName = name.slice(0, underIndex + 1) + number;
         }
 
+        // newInsMask(offsetCopy, newName);
         let newMask = {
             offset : offsetCopy,
+            name : newName
+        };
+
+        this.sendMsg("newInsMaskOffset", {mask : newMask, offset : offset});
+    }
+
+    getCurIns() {
+        return this.props.instanceList.mask2ins.get(this.activeInstanceIndex);
+    }
+
+    getCurMask() {
+        let ins = this.getCurIns();
+        return ins.maskList.idx2Mask.get(ins.activateMaskIdx);
+    }
+
+    getIsParsing() {
+        let mask = this.getCurMask();
+        let result = mask.isParsing == undefined ? false : mask.isParsing;
+
+        return result;
+    }
+
+    newInsMaskParsing(maskIdx) {
+        let curOffset = this.insPixelIndex[this.activeInstanceIndex];
+
+        let h, w;
+        let left = 1e7, right = 0, up = 1e7, down = 0;
+        for (let offset of curOffset) {
+            h = (offset / 4) / this.imageWidth;
+            w = (offset / 4) % this.imageWidth;
+
+            left = left > w ? w : left;
+            right = right < w ? w : right;
+            up = up > h ? h : up;
+            down = down < h ? h : down;
+        }
+        
+        let list = [left, up, right, down];
+        Meteor.call('savePoint', list, this.props.imageUrl, "bgP_fgP/parsing");
+
+        this.loadMask(this.loadParsingMask.bind(this));
+    }
+
+    getParsingColor() {
+        let colorDic = {
+            0:[255,255,255],
+            1:[255,255,0],
+            2:[255,97,0],
+            3:[78,42,42],
+            4:[0,0,255],
+            5:[0,199,140],
+            6:[255,0,255],
+            7:[160,32,240],
+            8:[0,255,255],
+            9:[0,255,0],
+            10:[255,127,80],
+            11:[34,139,34],
+            12:[193,255,193],
+            13:[60,179,213],
+            14:[160,82,45],
+            15:[122,1,66],
+            16:[136,135,13],
+            17:[0,122,255],
+            18:[123,92,208],
+            19:[170,54,140],
+            20:[220,0,50],
+            21:[128,64,0],
+            22:[0,64,128],
+            23:[255,255,200]
+        };
+
+        return colorDic;
+    }
+
+    colorStr2List(c) {
+        return [parseInt("0x" + c.slice(1, 3)), 
+            parseInt("0x" + c.slice(3, 5)),
+            parseInt("0x" + c.slice(5, 7))];
+    }
+
+    loadParsingMask(maskData, threshPixels, nonZeroPixels) {
+        let curOffset = this.insPixelIndex[this.activeInstanceIndex];
+
+        const ctx = this.filterCanvas.getContext("2d");
+        let newVisualData = ctx.createImageData(this.imageWidth, this.imageHeight);
+        let offset = new Set(nonZeroPixels);
+
+        let colorDic = this.getParsingColor();
+
+        for (let o = 0; o < maskData.data.length; o += 4) {
+            let color = colorDic[maskData.data[o]];
+            if (color == undefined) {
+                continue;
+            }
+            newVisualData.data[o + 0] = color[0];
+            newVisualData.data[o + 1] = color[1];
+            newVisualData.data[o + 2] = color[2];
+            newVisualData.data[o + 3] = 255;
+        }
+
+        let newMask = {
+            offset : offset,
+            name : "Human Parsing",
+            visualData : newVisualData,
+            annoData : maskData,
+            isParsing : true
+        }
+
+        this.sendMsg("newInsMaskOffset", {mask : newMask, offset : curOffset});
+    }
+
+    // Deprecated
+    newInsMask(newOffset, newName) {
+        let offset = this.insPixelIndex[this.activeInstanceIndex];
+
+        let newMask = {
+            offset : newOffset,
             name : newName
         };
         
@@ -1720,15 +1869,27 @@ export default class SseEditor2d extends React.Component {
 
     insMaskSelection(mask, isNewMask=false) {
         let cur_offset = this.insPixelIndex[this.activeInstanceIndex];
+        let update = new Map();
+        update.set("offset", cur_offset);
+        let isParsing = this.getIsParsing();
+        if (isParsing) {
+            update.set("visualData", this.visualizationData);
+            update.set("annoData", this.annotationData);
+        }
         let new_offset = mask.offset;
+        isParsing = mask.isParsing == undefined ? false : mask.isParsing;
+        if (isParsing) {
+            this.annotationData = mask.annoData;
+            this.visualizationData = mask.visualData;
+        }
 
         this.insPixelIndex[this.activeInstanceIndex] = new_offset;
 
-        this.insMaskSelectionVisual(cur_offset, new_offset);
-        this.sendMsg("insMaskSelectionOffset", {mask : mask, offset : [cur_offset, new_offset]});
+        this.insMaskSelectionVisual(cur_offset, new_offset, isParsing);
+        this.sendMsg("insMaskSelectionOffset", {mask : mask, offset : new_offset, update : update});
     }
 
-    insMaskSelectionVisual(cur_offset, new_offset) {
+    insMaskSelectionVisual(cur_offset, new_offset, isParsing=false) {
         let iData = this._getInstanceMaskData();
         let vData = this._getVisualizationData();
         let ins = this.activeInstanceIndex;
@@ -1751,9 +1912,16 @@ export default class SseEditor2d extends React.Component {
             iData.data[offset + 2] = (ins >>> 16) & 255;
             iData.data[offset + 3] = 255;
 
-            vData.data[offset + 0] = color[0];
-            vData.data[offset + 1] = color[1];
-            vData.data[offset + 2] = color[2];
+            if (isParsing) {
+                vData.data[offset + 0] = this.visualizationData.data[offset + 0];
+                vData.data[offset + 1] = this.visualizationData.data[offset + 1];
+                vData.data[offset + 2] = this.visualizationData.data[offset + 2];
+            }
+            else {
+                vData.data[offset + 0] = color[0];
+                vData.data[offset + 1] = color[1];
+                vData.data[offset + 2] = color[2];
+            }
             vData.data[offset + 3] = 255;
         }
 
@@ -2228,9 +2396,6 @@ export default class SseEditor2d extends React.Component {
             this.disableSmoothing();
             this.init2Superpixel();
             this.genInsColorDic();
-            setTimeout(() => {
-                this.initInstance();
-            }, 200);
             this.undoRedo.init(document.URL, this.currentSample);
             this.setCurrentSample(this.currentSample); // Workaround for late registered components
             this.floodTool.initCanvas($("#sourceImage").get(0));
@@ -2348,10 +2513,10 @@ export default class SseEditor2d extends React.Component {
     }
 
     getMaskUrl(arg) {
-        return "/mask" + arg.slice(0, arg.indexOf('.')) + ".jpg";
+        return "/mask" + arg.slice(0, arg.indexOf('.')) + ".png";
     }
 
-    loadMask() {
+    loadMask(func) {
         const maskImage = $("#mask");
         maskImage.attr("src", this.getMaskUrl(this.props.imageUrl));
 
@@ -2366,9 +2531,11 @@ export default class SseEditor2d extends React.Component {
             ctx.drawImage(mask, 0, 0);
             setTimeout(() => {
                 let maskData = ctx.getImageData(0, 0, mask.width, mask.height);
-                let pixels = this.maskPixels(maskData)
-                this.addNewInstance(pixels);
-                this._updateAnnotation(pixels);
+                let threshPixels = this.maskPixels(maskData);
+                let nonZeroPixels = this.maskPixels(maskData, false);
+                func(maskData, threshPixels, nonZeroPixels);
+                // this.addNewInstance(pixels);
+                // this._updateAnnotation(pixels);
                 // this.drawNewInstance(instanceNum);
 
                 maskImage.attr("src", '');
@@ -2377,25 +2544,24 @@ export default class SseEditor2d extends React.Component {
 
                 // test if this can deactivate iog_click 
                 // Paper.tool.cancel(true);
-                this.brushTool.activate();
-                this.clearAux();
-
+                this.sendMsg("pointer");
             }, 100);
         }
         else {
             setTimeout(() => {
-                this.loadMask();
+                this.loadMask(func);
             }, 1000);
         }
     }
 
-    maskPixels(data) {
+    maskPixels(data, useTrh=true) {
         let offset = 0;
         let pixels = [];
+        let threshold = useTrh ? this.maskThreshold * 255 : 0;
         for (var i = 0; i < this.imageHeight; i++) {
             for (var j = 0; j < this.imageWidth; j++) {
                 // bool = data.data[offset] > this.maskThreshold * 255 ? 1 : 0;
-                if (data.data[offset] > this.maskThreshold * 255) {
+                if (data.data[offset] > threshold) {
                     pixels.push(offset);
                 }
                 offset += 4;
@@ -2856,6 +3022,11 @@ export default class SseEditor2d extends React.Component {
         //     return true;
         // }
         // labels = (typeof labels === "object") ? labels : this._fillArray(new Int32Array(pixels.length), labels);
+        let isParsing = this.getIsParsing();
+        if (isParsing && this.activeClassIndex == 0){
+            isRight = true;
+        }
+
         let labels = this._fillArray(new Int32Array(pixels.length), this.activeClassIndex);
         let updates = this._getDifferentialUpdates(pixels, isRight);
         if (updates.pixels.length === 0) {
@@ -2907,31 +3078,47 @@ export default class SseEditor2d extends React.Component {
             let flagLeft = label !== curLabel || insLabel !== curIns;
             let flagRight = label == curLabel || insLabel == curIns;
 
-            if ((flagLeft && !isRight) || (flagRight && isRight)) {
-                updates.pixels.push(offset);
-                updates.prev.push(label);
-                updates.next.push(curLabel);
-                updates.insPrev.push(insLabel);
-                updates.insNext.push(curIns);
-            }
+            // if ((flagLeft && !isRight) || (flagRight && isRight)) {
+            updates.pixels.push(offset);
+            updates.prev.push(label);
+            updates.next.push(curLabel);
+            updates.insPrev.push(insLabel);
+            updates.insNext.push(curIns);
+            // }
         }
 
         return updates;
     }
 
-    instanceHighlight(index, select=false) {
+    instanceHighlight(ins, select=false) {
+        let index = ins.maskValue;
         let pixels = this.insPixelIndex[index];
         let vData = this._getVisualizationData();
 
+        // let mask = ins.maskList.idx2Mask.get(ins.activateMaskIdx);
+        // if (mask.isParsing != undefined && mask.isParsing) {
+        //     this.annotationData = mask.annoData;
+        //     this.visualizationData = mask.visualData;
+
+        //     this.isParsing = true;
+        // }
         // var i, offset;
         // for (i = 0; i < pixels.length; ++i) {
             // offset = pixels[i];
+        let isParsing = this.getIsParsing();
         let color = this.selectInstanceColor;
         for (let offset of pixels) {
             if (select) {
-                vData.data[offset + 0] = color[0];
-                vData.data[offset + 1] = color[1];
-                vData.data[offset + 2] = color[2];
+                if (isParsing) {
+                    vData.data[offset + 0] = this.visualizationData.data[offset + 0];
+                    vData.data[offset + 1] = this.visualizationData.data[offset + 1];
+                    vData.data[offset + 2] = this.visualizationData.data[offset + 2];
+                }
+                else {
+                    vData.data[offset + 0] = color[0];
+                    vData.data[offset + 1] = color[1];
+                    vData.data[offset + 2] = color[2];
+                }
             }
             else {
                 vData.data[offset + 3] = 128;
@@ -2941,7 +3128,8 @@ export default class SseEditor2d extends React.Component {
         this.visualization.setImageData(vData, 0, 0);
     }
 
-    instanceDeHighlight(index, select=false) {
+    instanceDeHighlight(ins, select=false) {
+        let index = ins.maskValue;
         let pixels = this.insPixelIndex[index];
         let vData = this._getVisualizationData();
 
@@ -2998,6 +3186,7 @@ export default class SseEditor2d extends React.Component {
         let annotationData = this._getAnnotationData();
         let visualizationData = this._getVisualizationData();
         let instanceData = this._getInstanceMaskData();
+        let isParsing = this.getIsParsing();
 
         for (i = 0; i < pixels.length; i++) {
             let offset = pixels[i];
@@ -3005,18 +3194,32 @@ export default class SseEditor2d extends React.Component {
             let ins = insLabels[i];
             // console.log(typeof(this.activeClassIndex), typeof(index));
             // let color = this.activeSoc.colorForIndexAsRGBArray(index);
+
             // color change with instance status, not annotation
             let color = ins == parseInt(this.activeInstanceIndex) ? 
                 this.selectInstanceColor :
                 this.props.instanceList.mask2ins.get(ins).colorList;
+            // TODO: color change with annotation if human parsing mask selected 
+            if (isParsing) {
+                color = this.activeClassColor;
+            }
+            // remove annotate if right click
             if (isRight) {
                 color = [255, 255, 255];
+                index = 0;
             }
 
-            annotationData.data[offset + 0] = index;
-            annotationData.data[offset + 1] = index;
-            annotationData.data[offset + 2] = index;
-            annotationData.data[offset + 3] = 255;
+            if (isParsing) {
+                this.annotationData.data[offset + 0] = index;
+                this.annotationData.data[offset + 1] = index;
+                this.annotationData.data[offset + 2] = index;
+                this.annotationData.data[offset + 3] = 255;
+
+                this.visualizationData.data[offset + 0] = color[0];
+                this.visualizationData.data[offset + 1] = color[1];
+                this.visualizationData.data[offset + 2] = color[2];
+                this.visualizationData.data[offset + 3] = 255;
+            }
 
             visualizationData.data[offset + 0] = color[0];// * 255;
             visualizationData.data[offset + 1] = color[1];// * 255;

@@ -59,10 +59,13 @@ export default class SseInsMaskChooser extends SseToolbar {
         const smallIconSelected = {width: "25px", height: "25px", color: "red"};
         return (
             <div className="sse-insMask-chooser vflex scroller"
-                 style={{"backgroundColor": "#393536", "padding": "5px 5px 0 0"}}>
+                 style={{"padding": "5px 5px 0 0"}}>
                 {this.props.instance.maskList.maskList.map((objDesc, idx) => {
                     const isSelected = objDesc.idx == this.state.activeMaskIndex;
-                    return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}>
+                    // const buttonColor = "#F8F8FF";
+                    const buttonColor = "#3F3795";
+                    return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}
+                                style={{"height" : "45px"}}>
                         <Button className="class-button"
                                 onClick={() => {
                                     this.sendMsg('insMaskSelection', {mask: objDesc});
@@ -72,9 +75,9 @@ export default class SseInsMaskChooser extends SseToolbar {
                                         "width": "100%",
                                         "minHeight": "40px",
                                         "margin": "1px",
-                                        "backgroundColor": "#F8F8FF",
-                                        "color": SseGlobals.computeTextColor("#F8F8FF"),
-                                        "border": isSelected ? "solid 3px #ff4f6c" : "solid 1px black",
+                                        "backgroundColor": buttonColor,
+                                        "color": SseGlobals.computeTextColor(buttonColor),
+                                        "border": isSelected ? "solid 1px #ffffff" : "solid 1px black",
                                         "padding": "0 3px"
                                     }}>
                             <div
@@ -84,10 +87,17 @@ export default class SseInsMaskChooser extends SseToolbar {
                         </Button>
                     </div>
                 })}
+                {this.props.instance.className.match(/Person|Human/gi) != null
+                    ? <Button 
+                        onClick={() => this.sendMsg('humanParsing', {maskIdx : this.state.activeMaskIndex})}
+                        disabled={this.props.instance.maskValue == 0}>
+                            Human Parsing
+                    </Button>
+                    : null}
                 <Button 
                     onClick={() => this.sendMsg('newInsMask', {maskIdx : this.state.activeMaskIndex})}
                     disabled={this.props.instance.maskValue == 0}>
-                        New Mask
+                        Edit from This
                 </Button>
             </div>
         );

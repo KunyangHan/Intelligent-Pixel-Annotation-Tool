@@ -2,17 +2,28 @@
 @darkgray: #363539;
 @lightgray: #F3F3F3;
 @textColor: white;
-@class-chooser-width: 230px;
+@class-chooser-width: 200px;
 @instance-chooser-width: 150px;
 @insMask-chooser-width: 150px;
 // @class-chooser-width: 190px;
 // @instance-chooser-width: 70px;
 @recommend-chooser-width: 230px;
 
+// @highlightColor: #3F3795;
+@commandColor: #FFFFFF;
+@highlightColor: #857aff;
+// @commandColor: #857aff;
+// @highlightColor: #FFFFFF;
+@sseButtonColor: #857aff;
+
+@moduleBgrColor: #1c1d23;
+@leftBgrColor: #1c1d23;
+
 html, body, #app-content, #app-content > div {
   height: 100%;
   margin: 0;
-  background-color: #000000;
+  // background-color: #000000;
+  background-color: #14161b;
   color: @textColor;
   font-size: 95%;
   font-family: "Roboto", sans-serif;
@@ -25,9 +36,9 @@ a {
 }
 
 h1 {
-  font-size: 100%;
-  background-color: #656565;
-  text-align: center;
+  font-size: 130%;
+  // background-color: #656565;
+  // text-align: center;
   font-weight: normal;
 }
 
@@ -62,7 +73,7 @@ h1 {
 
 .sse-toolbar {
   color: @textColor;
-  background-color: @darkgray;
+  background-color: @moduleBgrColor;
   padding: 0 5px !important;
 
   .group {
@@ -188,7 +199,7 @@ button {
   width: 190px;
   border-left: solid 1px rgba(90, 90, 90, .8);
   color: @textColor;
-  background-color: @darkgray !important;
+  background-color: @moduleBgrColor !important;
   .rc-slider {
     margin-left: 5px;
   }
@@ -209,7 +220,11 @@ button {
   }
 
   .sse-sliders-stack {
-    margin-top: 3px;
+    margin-top: 10px;
+
+    .table-row {
+      height: 20px;
+    }
   }
 
   > *:first-child {
@@ -220,6 +235,12 @@ button {
     padding-right: 7px;
     padding-top: 7px;
 
+  }
+
+  > .section {
+    border: solid;
+    border-width: 0 0 1px 0;
+    border-color: #767676;
   }
 }
 
@@ -240,7 +261,7 @@ button {
 
 .sse-object-toolbar {
   height: 80px;
-  background-color: @darkgray;
+  background-color: @moduleBgrColor;
   border-top: solid 1px #111111;
   padding: 4px;
 
@@ -345,14 +366,15 @@ button {
   }
   &.enabled {
     * {
-      color: @textColor;
+      color: @commandColor;
     }
     span.title {
       color: #999999;
     }
   }
   &.highlighted * {
-    color: @red;
+    // color: @red;
+    color: @highlightColor;
   }
 }
 
@@ -362,7 +384,11 @@ button {
 
 .sse-class-chooser {
 
+  background-color: @leftBgrColor;
   width: @class-chooser-width;
+  // border: solid;
+  // border-width: 0 1px 0 0;
+  // border-color: #767676;
 
   sup {
     line-height: 0;
@@ -388,7 +414,11 @@ button {
 
 .sse-instance-chooser {
 
+  background-color: @leftBgrColor;
   width: @instance-chooser-width;
+  // border: solid;
+  // border-width: 0 1px 0 0;
+  // border-color: #767676;
 
   sup {
     line-height: 0;
@@ -414,7 +444,11 @@ button {
 
 .sse-insMask-chooser {
 
+  background-color: @leftBgrColor;
   width: @insMask-chooser-width;
+  // border: solid;
+  // border-width: 0 1px 0 0;
+  // border-color: #767676;
 
   sup {
     line-height: 0;
@@ -440,7 +474,11 @@ button {
 
 .sse-recommend-chooser {
 
+  background-color: @leftBgrColor;
   width: @recommend-chooser-width;
+  // border: solid;
+  // border-width: 0 1px 0 0;
+  // border-color: #767676;
 
   sup {
     line-height: 0;
@@ -467,9 +505,9 @@ button {
 .sse-button {
   border: none;
   line-height: 20px;
-  background-color: #525252;
+  background-color: @sseButtonColor;
   color: @textColor;
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
   &.big {
     padding: 10px 5px;

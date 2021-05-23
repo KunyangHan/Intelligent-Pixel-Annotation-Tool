@@ -63,14 +63,20 @@ export default class SetOfInstance {
         ins.colorStr = this.getInsColorStr(isF);
     }
 
-    changeMask(idx, maskIdx, offset) {
+    changeMask(idx, maskIdx, offset, update) {
         let ins = this.mask2ins.get(idx);
 
         let curIdx = ins.activateMaskIdx;
-        ins.maskList.idx2Mask.get(curIdx).offset = offset[0];
+        let mask = ins.maskList.idx2Mask.get(curIdx);
+        update.forEach((value, key) => {
+            if (mask[key] != undefined) {
+                mask[key] = value;
+                // console.log(idx, maskIdx, key, value);
+            }
+        })
 
         ins.activateMaskIdx = maskIdx;
-        ins.maskList.idx2Mask.get(maskIdx).offset = offset[1];
+        // ins.maskList.idx2Mask.get(maskIdx).offset = offset;
     }
 
     newMask(idx, mask, offset) {

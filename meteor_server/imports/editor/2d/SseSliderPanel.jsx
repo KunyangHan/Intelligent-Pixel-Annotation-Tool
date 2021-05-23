@@ -187,9 +187,11 @@ export default class SseSliderPanel extends React.Component {
                     </div>
                     <div className="hflex">
                         <div className="mt3">Objects Opacity</div>
+                    </div>
+                    <div className="hflex" style={{"height": "30px", "padding": "5px 0 0 0"}}>
                         <div className="grow ml5">
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={0}
                                 max={1}
                                 step={0.01}
@@ -200,9 +202,11 @@ export default class SseSliderPanel extends React.Component {
                     </div>
                     <div className="hflex">
                         <div className="mt3">Boundary Opacity</div>
+                    </div>
+                    <div className="hflex" style={{"height": "30px", "padding": "5px 0 0 0"}}>
                         <div className="grow ml5">
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={0}
                                 max={1}
                                 step={0.01}
@@ -216,7 +220,15 @@ export default class SseSliderPanel extends React.Component {
                     <div className="mt3">
                         Current Index: {this.state.curIndex || 'unknown'}
                     </div>
-                    <input type="text" id="targetImage" onChange={this.imageChange} value={this.state.nextIndex || ''}/>
+                    <input 
+                        type="text" 
+                        id="targetImage" 
+                        onChange={this.imageChange} 
+                        value={this.state.nextIndex || ''}
+                        style={{"width": "70%",
+                                "background-color": "#f0edff",
+                                "color": "black",
+                                "border-radius": "3px"}}/>
                     <Link to={"/edit/%2F" + this.state.target}>
                         <IconButton touch="true"
                                     classes={{"colorPrimary": "white"}}>
@@ -231,9 +243,11 @@ export default class SseSliderPanel extends React.Component {
                         </div>
                         <div className="hflex">
                             <div className="mt3">Brush Size</div>
+                        </div>
+                        <div className="hflex" style={{"height": "30px", "padding": "5px 0 0 0"}}>
                             <div className="grow ml5">
                                 <Slider
-                                    style={{marginTop: "2px", marginBottom: "2px"}}
+                                    style={{"marginTop": "2px", "marginBottom": "2px"}}
                                     min={0}
                                     max={10}
                                     step={1}
@@ -264,7 +278,7 @@ export default class SseSliderPanel extends React.Component {
                             <div className="mt3">Brightness</div>
 
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={-100}
                                 max={100}
                                 step={1}
@@ -276,7 +290,7 @@ export default class SseSliderPanel extends React.Component {
                         <div className="table-row">
                             <div>Contrast</div>
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={-100}
                                 max={100}
                                 step={1}
@@ -287,7 +301,7 @@ export default class SseSliderPanel extends React.Component {
                         <div className="table-row">
                             <div>Hue</div>
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={-180}
                                 max={180}
                                 step={1}
@@ -298,7 +312,7 @@ export default class SseSliderPanel extends React.Component {
                         <div className="table-row">
                             <div>Saturation</div>
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={-100}
                                 max={100}
                                 step={1}
@@ -309,7 +323,7 @@ export default class SseSliderPanel extends React.Component {
                         <div className="table-row">
                             <div>Lightness</div>
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={-100}
                                 max={100}
                                 step={1}
@@ -320,7 +334,7 @@ export default class SseSliderPanel extends React.Component {
                         <div className="table-row">
                             <div>Gamma</div>
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={1}
                                 max={5}
                                 step={0.01}
@@ -331,7 +345,7 @@ export default class SseSliderPanel extends React.Component {
                         <div className="table-row">
                             <div>Rescale</div>
                             <Slider
-                                style={{marginTop: "2px", marginBottom: "2px"}}
+                                style={{"marginTop": "2px", "marginBottom": "2px"}}
                                 min={1}
                                 max={5}
                                 step={0.01}

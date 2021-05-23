@@ -60,17 +60,28 @@ export default class SseInstanceChooser extends SseToolbar {
         const smallIconSelected = {width: "25px", height: "25px", color: "red"};
         return (
             <div className="sse-instance-chooser vflex scroller"
-                 style={{"backgroundColor": "#393536", "padding": "5px 5px 0 0"}}>
+                 style={{"padding": "5px 5px 0 0"}}>
                 {this.props.instanceList.insList.map((objDesc, idx) => {
                     const isSelected = objDesc.maskValue == this.state.activeInstanceIndex;
-                    return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}>
+                    // const buttonColor = objDesc.color;
+                    const buttonColor = "#3F3795";
+                    return <div className="hflex flex-align-items-center no-shrink" key={objDesc.label}
+                            style={{"height" : "45px"}}>
                         <Checkbox
                             checked={objDesc.isForeground == true}
                             disabled={objDesc.isForeground == 255}
+                            color={"#3F3795"}
                             onChange={(event) => {
                                 this.sendMsg("instanceCheckbox", {
                                     isF : event.target.checked,
-                                    ins : objDesc.maskValue});
+                                    ins : objDesc.maskValue}); 
+                            }}
+                            style={
+                                {
+                                    "width": "30%",
+                                    "height" : "40px",
+                                    "margin": "1px",
+                                    "padding": "0 3px"
                             }}
                         />
                         <Button className="class-button"
@@ -81,7 +92,7 @@ export default class SseInstanceChooser extends SseToolbar {
                                     // event.preventDefault();
                                     // console.log("right click ?");
                                     this.sendMsg('instanceSelection', {instance: objDesc});
-                                    this.sendMsg('changeClass', {instance: objDesc});
+                                    this.sendMsg('changeInsClass', {instance: objDesc});
                                 }}
                                 onMouseEnter={() => {
                                     if (typeof objDesc.isForeground == "boolean"){
@@ -95,12 +106,12 @@ export default class SseInstanceChooser extends SseToolbar {
                                 }}
                                 style={
                                     {
-                                        "width": "100%",
+                                        "width": "70%",
                                         "minHeight": "40px",
                                         "margin": "1px",
-                                        "backgroundColor": objDesc.colorStr,
-                                        "color": SseGlobals.computeTextColor(objDesc.colorStr),
-                                        "border": isSelected ? "solid 3px #ffe100" : "solid 1px black",
+                                        "backgroundColor": buttonColor,
+                                        "color": SseGlobals.computeTextColor(buttonColor),
+                                        "border": isSelected ? "solid 1px #ffffff" : "solid 1px black",
                                         "padding": "0 3px"
                                     }}>
                             <div

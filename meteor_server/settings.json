@@ -23,6 +23,34 @@
     ]
     },
     {
+      "name": "HumanParsing", "objects": [
+        {"label": "Background", "color": "#FFFFFF"},
+        {"label": "Hat", "color": "#ffff00"},
+        {"label": "Hair", "color": "#ff6100"},
+        {"label": "Sunglasses", "color": "#4e2a2a"},
+        {"label": "UpperClothes", "color": "#0000ff"},
+        {"label": "Dress", "color": "#00c78c"},
+        {"label": "Coat", "color": "#ff00ff"},
+        {"label": "Socks", "color": "#a020f0"},
+        {"label": "Pants", "color": "#00FFFF"},
+        {"label": "Glove", "color": "#00FF00"},
+        {"label": "Scarf", "color": "#ff7f50"},
+        {"label": "Skirt", "color": "#228b22"},
+        {"label": "Face", "color": "#c1ffc1"},
+        {"label": "Right-arm", "color": "#3cb3d5"},
+        {"label": "Left-arm", "color": "#a0522d"},
+        {"label": "Right-leg", "color": "#7a0142"},
+        {"label": "Left-leg", "color": "#88870d"},
+        {"label": "Right-shoe", "color": "#007aff"},
+        {"label": "Left-shoe", "color": "#7b5cd0"},
+        {"label": "Torso-skin", "color": "#aa368c"},
+        {"label": "Jumpsuits", "color": "#dc0032"},
+        {"label": "Handheld-objects", "color": "#804000"},
+        {"label": "Else", "color": "#004080"},
+        {"label": "Head-else", "color": "#ffffc8"}
+      ]
+    },
+    {
       "name": "Cityscapes", "objects": [
       {"label": "VOID", "color": "#FFFFFF"},
       {"label": "Road", "color": "#804080", "icon": "Road"},
