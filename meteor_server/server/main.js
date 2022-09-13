@@ -206,7 +206,7 @@ Meteor.methods({
         }
 
         // writeFile(join(path, "path.txt"), name, callback);
-        writeFile(join(path, name + ".txt"), points, callback);
+        writeFile(join(path, name + ".txt"), points.toString(), callback);
     },
 
     'clearMask'(imageUrl) {
